@@ -1,3 +1,13 @@
+.venv/
 __pycache__/
-.pytest_cache/
 *.pyc
+*.pyo
+
+*.db
+*.sqlite3
+postgres_data/
+
+.env
+
+.vscode/
+.idea/
