@@ -1,8 +1,14 @@
 from typing import Annotated
 
 from app.database import Base, engine, get_db
-from app.models import OrderDB
-from app.schemas import PROCESS_STEPS, Order, OrderResponse
+from app.models import EmployeeDB, OrderDB, OrderStepDB
+from app.schemas import (
+    Employee,
+    EmployeeResponse,
+    Order,
+    OrderResponse,
+    ProcessStage,
+)
 from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -43,23 +49,38 @@ def create_new_order(order_data: Order, db: DbSession):
     db.commit()
     db.refresh(new_order)
 
+    steps_to_create = []
+
+    for step_number, stage in enumerate(ProcessStage, start=1):
+        step = OrderStepDB(
+            order_id=new_order.id,
+            step_name=stage.value,
+            step_order=step_number,
+            status="PENDING",
+        )
+        steps_to_create.append(step)
+
+    db.add_all(steps_to_create)
+    db.commit()
+    db.refresh(new_order)
+
     return new_order
 
 
-@app.patch("/orders/{order_id}/next-step", response_model=OrderResponse)
-def update_order(order_id: int, db: DbSession):
-    order = find_order_or_404(order_id, db)
-    current_index = PROCESS_STEPS.index(order.status)
-    if current_index + 1 < len(PROCESS_STEPS):
-        order.status = PROCESS_STEPS[current_index + 1]
-        db.commit()
-        db.refresh(order)
-        return order
+# @app.patch("/orders/{order_id}/next-step", response_model=OrderResponse)
+# def update_order(order_id: int, db: DbSession):
+#     order = find_order_or_404(order_id, db)
+#     current_index = PROCESS_STEPS.index(order.status)
+#     if current_index + 1 < len(PROCESS_STEPS):
+#         order.status = PROCESS_STEPS[current_index + 1]
+#         db.commit()
+#         db.refresh(order)
+#         return order
 
-    raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        detail="Order is already done.",
-    )
+#     raise HTTPException(
+#         status_code=status.HTTP_400_BAD_REQUEST,
+#         detail="Order is already done.",
+#     )
 
 
 @app.delete("/orders/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -67,3 +88,17 @@ def delete_order(order_id: int, db: DbSession):
     order = find_order_or_404(order_id, db)
     db.delete(order)
     db.commit()
+
+
+@app.get("/employees", response_model=list[EmployeeResponse])
+def get_all_employees(db: DbSession):
+    return db.scalars(select(EmployeeDB)).all()
+
+
+@app.post("/employees", response_model=EmployeeResponse)
+def create_new_employee(employee_data: Employee, db: DbSession):
+
+    new_employee = EmployeeDB(**employee_data.model_dump())
+    db.add(new_employee)
+    db.commit()
+    db.refresh(new_employee)
