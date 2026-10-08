@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 from enum import StrEnum
 
-from pydantic import BaseModel, Field, PositiveInt
+from pydantic import BaseModel, ConfigDict, Field, PositiveInt
 
 
 def default_completion_date() -> date:
@@ -17,14 +17,45 @@ class ProcessStage(StrEnum):
     QUALITY_CONTROL = "quality_control"
     PACKING = "packing"
 
+
 PROCESS_STEPS = list(ProcessStage)
+
 
 class Order(BaseModel):
     element_name: str = "DRILL"
-    count: PositiveInt 
+    count: PositiveInt
     planned_completion_date: date = Field(default_factory=default_completion_date)
-    status: ProcessStage = ProcessStage.CUTTING
+
+
+class Employee(BaseModel):
+    name: str
+    role: str
+
+
+class EmployeeResponse(Employee):
+    id: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OrderStep(BaseModel):
+    id: int
+    order_id: int
+    step_name: str
+    step_order: int
+    status: str
+    note: str | None = None
+    assigned_employee_id: int | None = None
+
+
+class OrderStepResponse(OrderStep):
+    assigned_employee: EmployeeResponse | None = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OrderResponse(Order):
     id: int
+    steps: list[OrderStepResponse] = []
+
+    model_config = ConfigDict(from_attributes=True)
