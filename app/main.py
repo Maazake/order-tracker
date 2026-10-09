@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from app.database import Base, engine, get_db
+from app.database import get_db
 from app.models import EmployeeDB, OrderDB, OrderStepDB
 from app.schemas import (
     Employee,
@@ -14,7 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 DbSession = Annotated[Session, Depends(get_db)]
-Base.metadata.create_all(bind=engine)
+
 
 app = FastAPI()
 
