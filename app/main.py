@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from typing import Annotated
 
 from app.database import get_db
@@ -7,7 +8,11 @@ from app.schemas import (
     EmployeeResponse,
     Order,
     OrderResponse,
+    OrderStepResponse,
     ProcessStage,
+    StepComplete,
+    StepStart,
+    StepStatus,
 )
 from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy import select
@@ -37,7 +42,6 @@ def find_order_or_404(order_id: int, db: Session):
 @app.get("/orders/{order_id}", response_model=OrderResponse)
 def get_single_order(order_id: int, db: DbSession):
     order = find_order_or_404(order_id, db)
-
     return order
 
 
@@ -67,20 +71,72 @@ def create_new_order(order_data: Order, db: DbSession):
     return new_order
 
 
-# @app.patch("/orders/{order_id}/next-step", response_model=OrderResponse)
-# def update_order(order_id: int, db: DbSession):
-#     order = find_order_or_404(order_id, db)
-#     current_index = PROCESS_STEPS.index(order.status)
-#     if current_index + 1 < len(PROCESS_STEPS):
-#         order.status = PROCESS_STEPS[current_index + 1]
-#         db.commit()
-#         db.refresh(order)
-#         return order
+def find_step_or_404(step_id: int, db: Session):
+    step = db.get(OrderStepDB, step_id)
 
-#     raise HTTPException(
-#         status_code=status.HTTP_400_BAD_REQUEST,
-#         detail="Order is already done.",
-#     )
+    if not step:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Step ID  {step_id} not found",
+        )
+    return step
+
+
+@app.post("/steps/{step_id}/start", response_model=OrderStepResponse)
+def start_step(step_id: int, db: DbSession, data: StepStart):
+    step = find_step_or_404(step_id, db)
+    employee = db.get(EmployeeDB, data.employee_id)
+
+    if not employee:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Employee ID {data.employee_id} not found",
+        )
+
+    if step.status != StepStatus.PENDING:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Step is already {step.status}",
+        )
+
+    if step.step_order > 1:
+        previous = db.scalar(
+            select(OrderStepDB).where(
+                OrderStepDB.order_id == step.order_id,
+                OrderStepDB.step_order == step.step_order - 1,
+            )
+        )
+        if previous is None or previous.status != StepStatus.COMPLETED:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Previous step is not done yet",
+            )
+        
+    step.status = StepStatus.IN_PROGRESS
+    step.assigned_employee_id = employee.id
+    step.started_at = datetime.now(UTC)
+    db.commit()
+    db.refresh(step)
+    return step
+
+
+@app.post("/steps/{step_id}/complete", response_model=OrderStepResponse)
+def complete_step(step_id: int, data: StepComplete, db: DbSession):
+    step = find_step_or_404(step_id, db)
+
+    if step.status != StepStatus.IN_PROGRESS:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Step ID {step_id} is not in progress",
+        )
+
+    step.status = StepStatus.COMPLETED
+    step.completed_at = datetime.now(UTC)
+    if data.note is not None:
+        step.note = data.note
+    db.commit()
+    db.refresh(step)
+    return step
 
 
 @app.delete("/orders/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -102,3 +158,4 @@ def create_new_employee(employee_data: Employee, db: DbSession):
     db.add(new_employee)
     db.commit()
     db.refresh(new_employee)
+    return new_employee
