@@ -1,8 +1,8 @@
-from datetime import date, timedelta
+from datetime import UTC, datetime, timedelta
 
 from app.database import Base, SessionLocal, engine
 from app.models import EmployeeDB, OrderDB, OrderStepDB
-from app.schemas import ProcessStage
+from app.schemas import ProcessStage, StepStatus
 
 
 def seed_database() -> None:
@@ -28,7 +28,7 @@ def seed_database() -> None:
         order1 = OrderDB(
             element_name="DRILL",
             count=15,
-            planned_completion_date=date.today() + timedelta(days=14),
+            planned_completion_date=datetime.now(UTC) + timedelta(days=14),
         )
         db.add(order1)
         db.commit()
@@ -39,7 +39,7 @@ def seed_database() -> None:
                 order_id=order1.id,
                 step_name=ProcessStage.CUTTING.value,
                 step_order=1,
-                status="COMPLETED",
+                status=StepStatus.COMPLETED,
                 note="Material cut with 2mm margin",
                 assigned_employee_id=emp1.id,
             ),
@@ -47,7 +47,7 @@ def seed_database() -> None:
                 order_id=order1.id,
                 step_name=ProcessStage.TURNING.value,
                 step_order=2,
-                status="IN_PROGRESS",
+                status=StepStatus.IN_PROGRESS,
                 note="Rough machining in progress",
                 assigned_employee_id=emp1.id,
             ),
@@ -55,7 +55,7 @@ def seed_database() -> None:
                 order_id=order1.id,
                 step_name=ProcessStage.QUALITY_CONTROL.value,
                 step_order=3,
-                status="PENDING",
+                status=StepStatus.PENDING,
                 assigned_employee_id=emp3.id,
             ),
         ]
@@ -65,7 +65,7 @@ def seed_database() -> None:
         order2 = OrderDB(
             element_name="SHAFT",
             count=5,
-            planned_completion_date=date.today() + timedelta(days=7),
+            planned_completion_date=datetime.now(UTC) + timedelta(days=7),
         )
         db.add(order2)
         db.commit()
@@ -76,21 +76,21 @@ def seed_database() -> None:
                 order_id=order2.id,
                 step_name=ProcessStage.CUTTING.value,
                 step_order=1,
-                status="COMPLETED",
+                status=StepStatus.COMPLETED,
                 assigned_employee_id=emp1.id,
             ),
             OrderStepDB(
                 order_id=order2.id,
                 step_name=ProcessStage.MILLING.value,
                 step_order=2,
-                status="PENDING",
+                status=StepStatus.IN_PROGRESS,
                 assigned_employee_id=emp2.id,
             ),
             OrderStepDB(
                 order_id=order2.id,
                 step_name=ProcessStage.PACKING.value,
                 step_order=3,
-                status="PENDING",
+                status=StepStatus.PENDING,
                 assigned_employee_id=None,
             ),
         ]
