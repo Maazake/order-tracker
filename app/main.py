@@ -60,7 +60,7 @@ def create_new_order(order_data: Order, db: DbSession):
             order_id=new_order.id,
             step_name=stage.value,
             step_order=step_number,
-            status="PENDING",
+            status=StepStatus.PENDING,
         )
         steps_to_create.append(step)
 
@@ -111,7 +111,7 @@ def start_step(step_id: int, db: DbSession, data: StepStart):
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Previous step is not done yet",
             )
-        
+
     step.status = StepStatus.IN_PROGRESS
     step.assigned_employee_id = employee.id
     step.started_at = datetime.now(UTC)
@@ -151,7 +151,7 @@ def get_all_employees(db: DbSession):
     return db.scalars(select(EmployeeDB)).all()
 
 
-@app.post("/employees", response_model=EmployeeResponse)
+@app.post("/employees", response_model=EmployeeResponse, status_code=status.HTTP_201_CREATED)
 def create_new_employee(employee_data: Employee, db: DbSession):
 
     new_employee = EmployeeDB(**employee_data.model_dump())
