@@ -1,7 +1,7 @@
-from datetime import date
+from datetime import date, datetime
 
 from app.database import Base
-from sqlalchemy import ForeignKey
+from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 
@@ -39,6 +39,12 @@ class OrderStepDB(Base):
     step_order: Mapped[int]
     status: Mapped[str] = mapped_column(default="PENDING")
     note: Mapped[str | None] = mapped_column(default=None)
+    started_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
 
     assigned_employee_id: Mapped[int | None] = mapped_column(
         ForeignKey("employees.id"), default=None

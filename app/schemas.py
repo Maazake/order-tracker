@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field, PositiveInt
@@ -19,6 +19,15 @@ class ProcessStage(StrEnum):
 
 
 PROCESS_STEPS = list(ProcessStage)
+
+
+class StepStatus(StrEnum):
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "done"
+
+
+STEP_STATUS = list(StepStatus)
 
 
 class Order(BaseModel):
@@ -45,6 +54,8 @@ class OrderStep(BaseModel):
     step_order: int
     status: str
     note: str | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
     assigned_employee_id: int | None = None
 
 
@@ -59,3 +70,13 @@ class OrderResponse(Order):
     steps: list[OrderStepResponse] = []
 
     model_config = ConfigDict(from_attributes=True)
+
+class StepStart(BaseModel):
+    employee_id: int
+    started_at: datetime
+
+class StepComplete(BaseModel):
+    note: str | None = None
+
+
+    
