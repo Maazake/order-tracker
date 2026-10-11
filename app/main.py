@@ -1,9 +1,9 @@
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Query, status
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.database import get_db
 from app.models import EmployeeDB, OrderDB, OrderStepDB
@@ -14,6 +14,7 @@ from app.schemas import (
     OrderResponse,
     OrderStepResponse,
     ProcessStage,
+    SortOrder,
     StepComplete,
     StepStart,
     StepStatus,
@@ -21,13 +22,39 @@ from app.schemas import (
 
 DbSession = Annotated[Session, Depends(get_db)]
 
-
 app = FastAPI()
 
 
 @app.get("/orders", response_model=list[OrderResponse])
-def get_all_orders(db: DbSession):
-    return db.scalars(select(OrderDB).order_by(OrderDB.id)).all()
+def get_all_orders(
+    db: DbSession,
+    step_status: Annotated[StepStatus | None, Query(alias="status")] = None,
+    limit: Annotated[int, Query(ge=1, le=100)] = 10,
+    offset: Annotated[int, Query(ge=0)] = 0,
+    sort: Annotated[SortOrder, Query()] = SortOrder.ID,
+    desc: bool = False,
+):
+    query = select(OrderDB)
+    if step_status is not None:
+        query = query.where(OrderDB.steps.any(OrderStepDB.status == step_status))
+
+    columns = {
+        SortOrder.ID: OrderDB.id,
+        SortOrder.COUNT: OrderDB.count,
+        SortOrder.ELEMENT_NAME: OrderDB.element_name,
+        SortOrder.PLANNED_COMPLETION_DATE: OrderDB.planned_completion_date,
+    }
+    column = columns[sort]
+
+    if desc:
+        column = column.desc()
+
+    return db.scalars(
+        query.order_by(column, OrderDB.id)
+        .limit(limit)
+        .offset(offset)
+        .options(selectinload(OrderDB.steps))
+    ).all()
 
 
 def find_order_or_404(order_id: int, db: Session):

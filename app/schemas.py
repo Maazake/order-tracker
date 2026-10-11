@@ -29,6 +29,13 @@ class StepStatus(StrEnum):
 
 STEP_STATUS = list(StepStatus)
 
+class SortOrder(StrEnum):
+    ID = "id"
+    ELEMENT_NAME = "element_name"
+    COUNT = "count"
+    PLANNED_COMPLETION_DATE = "planned_completion_date"
+
+
 
 class Order(BaseModel):
     element_name: str = "DRILL"
