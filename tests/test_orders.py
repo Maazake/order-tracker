@@ -1,3 +1,5 @@
+import pytest
+
 from app.schemas import ProcessStage
 
 
@@ -62,3 +64,81 @@ def test_delete_order(client, order, employee):
     response = client.get(f"/orders/{order['id']}")
 
     assert response.status_code == 404
+
+
+def test_get_orders_with_params(client):
+    element = {"element_name": "DRILL", "count": 15}
+    for _ in range(3):
+        client.post("/orders", json=element)
+
+    response = client.get("/orders?limit=2")
+    assert response.status_code == 200
+    assert len(response.json()) == 2
+
+    response = client.get("/orders?offset=2")
+    data = response.json()
+    assert response.status_code == 200
+    assert len(data) == 1
+    assert data[0]["id"] == 3
+
+    response = client.get("/orders?offset=999")
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_get_order_by_status(client, employee, order):
+    step_id = order["steps"][0]["id"]
+    additional_order = {"element_name": "SHAFT", "count": 44}
+    response = client.post("/orders", json=additional_order)
+
+    assert response.status_code == 201
+
+    response = client.post(
+        f"/steps/{step_id}/start", json={"employee_id": employee["id"]}
+    )
+
+    assert response.status_code == 200
+
+    response = client.get("/orders?status=in_progress")
+    data = response.json()
+    assert response.status_code == 200
+    assert len(data) == 1
+    assert data[0]["id"] == order["id"]
+
+@pytest.mark.parametrize("desc", [False, True])
+def test_sort_orders_by_count(client, desc):
+    counts_in = [10, 30, 20]
+
+    for count in counts_in:
+        response = client.post(
+            "/orders", json={"element_name": "DRILL", "count": count}
+        )
+        assert response.status_code == 201
+
+    response = client.get("/orders", params={"sort": "count", "desc": desc})
+    data = response.json()
+    expected = sorted(counts_in, reverse=desc)
+
+    assert response.status_code == 200
+
+    counts = []
+    for order in data:
+        counts.append(order["count"])
+
+    assert counts == expected
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "/orders?limit=-5",
+        "/orders?limit=0",
+        "/orders?limit=101",
+        "/orders?status=xyz",
+        "/orders?sort=xyz",
+    ],
+)
+def test_invalid_params_return_422(client, url):
+    response = client.get(url)
+
+    assert response.status_code == 422
