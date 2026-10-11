@@ -25,3 +25,7 @@ dev = [
 
 [tool.fastapi]
 entrypoint = "app.main:app"
+
+[tool.ruff]
+src = ["."]
+extend-exclude = ["alembic/versions"]
