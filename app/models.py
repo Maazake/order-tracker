@@ -1,8 +1,10 @@
 from datetime import date, datetime
 
-from app.database import Base
 from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from app.database import Base
+from app.schemas import StepStatus
 
 
 class EmployeeDB(Base):
@@ -12,9 +14,7 @@ class EmployeeDB(Base):
     name: Mapped[str]
     role: Mapped[str]
 
-    steps: Mapped[list["OrderStepDB"]] = relationship(
-        back_populates="assigned_employee"
-    )
+    steps: Mapped[list[OrderStepDB]] = relationship(back_populates="assigned_employee")
 
 
 class OrderDB(Base):
@@ -25,8 +25,10 @@ class OrderDB(Base):
     count: Mapped[int]
     planned_completion_date: Mapped[date]
 
-    steps: Mapped[list["OrderStepDB"]] = relationship(
-        back_populates="order", cascade="all, delete-orphan"
+    steps: Mapped[list[OrderStepDB]] = relationship(
+        back_populates="order",
+        cascade="all, delete-orphan",
+        order_by="OrderStepDB.step_order",
     )
 
 
@@ -37,7 +39,7 @@ class OrderStepDB(Base):
     order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"))
     step_name: Mapped[str]
     step_order: Mapped[int]
-    status: Mapped[str] = mapped_column(default="PENDING")
+    status: Mapped[str] = mapped_column(default=StepStatus.PENDING)
     note: Mapped[str | None] = mapped_column(default=None)
     started_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), default=None
@@ -50,7 +52,5 @@ class OrderStepDB(Base):
         ForeignKey("employees.id"), default=None
     )
 
-    order: Mapped["OrderDB"] = relationship(back_populates="steps")
-    assigned_employee: Mapped["EmployeeDB | None"] = relationship(
-        back_populates="steps"
-    )
+    order: Mapped[OrderDB] = relationship(back_populates="steps")
+    assigned_employee: Mapped[EmployeeDB | None] = relationship(back_populates="steps")

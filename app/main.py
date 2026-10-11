@@ -1,6 +1,10 @@
 from datetime import UTC, datetime
 from typing import Annotated
 
+from fastapi import Depends, FastAPI, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
 from app.database import get_db
 from app.models import EmployeeDB, OrderDB, OrderStepDB
 from app.schemas import (
@@ -14,9 +18,6 @@ from app.schemas import (
     StepStart,
     StepStatus,
 )
-from fastapi import Depends, FastAPI, HTTPException, status
-from sqlalchemy import select
-from sqlalchemy.orm import Session
 
 DbSession = Annotated[Session, Depends(get_db)]
 
@@ -26,7 +27,7 @@ app = FastAPI()
 
 @app.get("/orders", response_model=list[OrderResponse])
 def get_all_orders(db: DbSession):
-    return db.scalars(select(OrderDB)).all()
+    return db.scalars(select(OrderDB).order_by(OrderDB.id)).all()
 
 
 def find_order_or_404(order_id: int, db: Session):
@@ -50,8 +51,7 @@ def create_new_order(order_data: Order, db: DbSession):
 
     new_order = OrderDB(**order_data.model_dump())
     db.add(new_order)
-    db.commit()
-    db.refresh(new_order)
+    db.flush()
 
     steps_to_create = []
 
@@ -77,7 +77,7 @@ def find_step_or_404(step_id: int, db: Session):
     if not step:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Step ID  {step_id} not found",
+            detail=f"Step ID {step_id} not found",
         )
     return step
 
@@ -106,7 +106,7 @@ def start_step(step_id: int, db: DbSession, data: StepStart):
                 OrderStepDB.step_order == step.step_order - 1,
             )
         )
-        if previous is None or previous.status != StepStatus.COMPLETED:
+        if previous is None or previous.status != StepStatus.DONE:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Previous step is not done yet",
@@ -130,7 +130,7 @@ def complete_step(step_id: int, data: StepComplete, db: DbSession):
             detail=f"Step ID {step_id} is not in progress",
         )
 
-    step.status = StepStatus.COMPLETED
+    step.status = StepStatus.DONE
     step.completed_at = datetime.now(UTC)
     if data.note is not None:
         step.note = data.note
@@ -148,10 +148,12 @@ def delete_order(order_id: int, db: DbSession):
 
 @app.get("/employees", response_model=list[EmployeeResponse])
 def get_all_employees(db: DbSession):
-    return db.scalars(select(EmployeeDB)).all()
+    return db.scalars(select(EmployeeDB).order_by(EmployeeDB.id)).all()
 
 
-@app.post("/employees", response_model=EmployeeResponse, status_code=status.HTTP_201_CREATED)
+@app.post(
+    "/employees", response_model=EmployeeResponse, status_code=status.HTTP_201_CREATED
+)
 def create_new_employee(employee_data: Employee, db: DbSession):
 
     new_employee = EmployeeDB(**employee_data.model_dump())

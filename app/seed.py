@@ -1,5 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
+from sqlalchemy.exc import SQLAlchemyError
+
 from app.database import Base, SessionLocal, engine
 from app.models import EmployeeDB, OrderDB, OrderStepDB
 from app.schemas import ProcessStage, StepStatus
@@ -39,7 +41,7 @@ def seed_database() -> None:
                 order_id=order1.id,
                 step_name=ProcessStage.CUTTING.value,
                 step_order=1,
-                status=StepStatus.COMPLETED,
+                status=StepStatus.DONE,
                 note="Material cut with 2mm margin",
                 assigned_employee_id=emp1.id,
             ),
@@ -76,7 +78,7 @@ def seed_database() -> None:
                 order_id=order2.id,
                 step_name=ProcessStage.CUTTING.value,
                 step_order=1,
-                status=StepStatus.COMPLETED,
+                status=StepStatus.DONE,
                 assigned_employee_id=emp1.id,
             ),
             OrderStepDB(
@@ -99,7 +101,7 @@ def seed_database() -> None:
         db.commit()
         print("Database seeded successfully.")
 
-    except Exception as e:
+    except SQLAlchemyError as e:
         print(f"Error seeding database: {e}")
         db.rollback()
     finally:

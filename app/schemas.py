@@ -24,7 +24,7 @@ PROCESS_STEPS = list(ProcessStage)
 class StepStatus(StrEnum):
     PENDING = "pending"
     IN_PROGRESS = "in_progress"
-    COMPLETED = "done"
+    DONE = "done"
 
 
 STEP_STATUS = list(StepStatus)
@@ -71,12 +71,10 @@ class OrderResponse(Order):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class StepStart(BaseModel):
     employee_id: int
-    started_at: datetime
+
 
 class StepComplete(BaseModel):
     note: str | None = None
-
-
-    
