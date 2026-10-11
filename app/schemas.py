@@ -4,6 +4,30 @@ from enum import StrEnum
 from pydantic import BaseModel, ConfigDict, Field, PositiveInt
 
 
+class UserRole(StrEnum):
+    OPERATOR = "operator"
+    ADMIN = "admin"
+
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    role: UserRole
+
+    class Config:
+        from_attributes = True
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
 def default_completion_date() -> date:
     return date.today() + timedelta(days=30)  # noqa: DTZ011
 
@@ -29,12 +53,12 @@ class StepStatus(StrEnum):
 
 STEP_STATUS = list(StepStatus)
 
+
 class SortOrder(StrEnum):
     ID = "id"
     ELEMENT_NAME = "element_name"
     COUNT = "count"
     PLANNED_COMPLETION_DATE = "planned_completion_date"
-
 
 
 class Order(BaseModel):

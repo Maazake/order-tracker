@@ -4,7 +4,16 @@ from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-from app.schemas import StepStatus
+from app.schemas import StepStatus, UserRole
+
+
+class UserDB(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(unique=True, index=True, nullable=False)
+    hashed_password: Mapped[str] = mapped_column(nullable= False)
+    role: Mapped[UserRole] = mapped_column(default=UserRole.OPERATOR, nullable=False)
 
 
 class EmployeeDB(Base):
