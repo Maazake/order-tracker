@@ -1,10 +1,11 @@
 import pytest
-from app.database import Base, get_db
-from app.main import app
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+
+from app.database import Base, get_db
+from app.main import app
 
 
 @pytest.fixture
@@ -38,7 +39,9 @@ def client(db_session):
 @pytest.fixture
 def employee(client):
 
-    response = client.post("/employees", json={"name": "John Smith", "role": "Lathe Operator"})
+    response = client.post(
+        "/employees", json={"name": "John Smith", "role": "Lathe Operator"}
+    )
     assert response.status_code == 201
     return response.json()
 
