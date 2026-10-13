@@ -268,3 +268,8 @@ def login_for_access_token(
 @app.get("/users/me", response_model=UserResponse)
 def get_me(current_user: Annotated[UserDB, Depends(get_current_user)]):
     return current_user
+
+@app.get("/users", response_model=list[UserResponse])
+def get_all_users(db: DbSession, _: Annotated[UserDB, Depends(require_admin)]):
+    return db.scalars(select(UserDB)).all()
+

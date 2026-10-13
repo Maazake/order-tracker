@@ -1,10 +1,16 @@
 from datetime import UTC, datetime, timedelta
 
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.database import Base, SessionLocal, engine
-from app.models import EmployeeDB, OrderDB, OrderStepDB
-from app.schemas import ProcessStage, StepStatus
+from app.models import EmployeeDB, OrderDB, OrderStepDB, UserDB
+from app.schemas import (
+    ProcessStage,
+    StepStatus,
+    UserRole,
+)
+from app.security import hash_password
 
 
 def seed_database() -> None:
@@ -12,29 +18,23 @@ def seed_database() -> None:
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
-    db = SessionLocal()
-
-    try:
+    with SessionLocal.begin() as db:
         print("Creating sample employees...")
         emp1 = EmployeeDB(name="Jan Kowalski", role="Lathe Operator")
         emp2 = EmployeeDB(name="Adam Nowak", role="Milling Operator")
         emp3 = EmployeeDB(name="Ewa Wisniewska", role="Quality Inspector")
 
         db.add_all([emp1, emp2, emp3])
-        db.commit()
-        db.refresh(emp1)
-        db.refresh(emp2)
-        db.refresh(emp3)
+        db.flush()
 
         print("Creating Order 1 (DRILL) with steps...")
         order1 = OrderDB(
             element_name="DRILL",
             count=15,
-            planned_completion_date=datetime.now(UTC) + timedelta(days=14),
+            planned_completion_date=(datetime.now(UTC) + timedelta(days=14)).date(),
         )
         db.add(order1)
-        db.commit()
-        db.refresh(order1)
+        db.flush()
 
         steps_order1 = [
             OrderStepDB(
@@ -67,11 +67,10 @@ def seed_database() -> None:
         order2 = OrderDB(
             element_name="SHAFT",
             count=5,
-            planned_completion_date=datetime.now(UTC) + timedelta(days=7),
+            planned_completion_date=(datetime.now(UTC) + timedelta(days=7)).date(),
         )
         db.add(order2)
-        db.commit()
-        db.refresh(order2)
+        db.flush()
 
         steps_order2 = [
             OrderStepDB(
@@ -98,14 +97,22 @@ def seed_database() -> None:
         ]
         db.add_all(steps_order2)
 
-        db.commit()
-        print("Database seeded successfully.")
+        create_admin(db)
 
-    except SQLAlchemyError as e:
-        print(f"Error seeding database: {e}")
-        db.rollback()
-    finally:
-        db.close()
+    print("Database seeded successfully.")
+
+
+def create_admin(db: Session) -> None:
+    exists = db.scalar(select(UserDB).where(UserDB.role == "admin"))
+    if exists:
+        return
+    db.add(
+        UserDB(
+            username="mazak",
+            hashed_password=hash_password("123"),
+            role=UserRole.ADMIN,
+        )
+    )
 
 
 if __name__ == "__main__":
