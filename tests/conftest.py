@@ -6,6 +6,9 @@ from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
 from app.main import app
+from app.models import UserDB
+from app.schemas import UserRole
+from app.security import create_access_token, hash_password
 
 
 @pytest.fixture
@@ -36,10 +39,33 @@ def client(db_session):
     app.dependency_overrides.clear()
 
 
-@pytest.fixture
-def employee(client):
+def _make_authenticated_client(db_session, role: UserRole) -> TestClient:
+    user = UserDB(
+        username=f"test-{role.value}", hashed_password=hash_password("123"), role=role
+    )
+    db_session.add(user)
+    db_session.flush()
 
-    response = client.post(
+    token = create_access_token(data={"sub": str(user.id), "role": user.role.value})
+    authed = TestClient(app)
+    authed.headers.update({"Authorization": f"Bearer {token}"})
+    return authed
+
+
+@pytest.fixture
+def admin_client(client, db_session):
+    return _make_authenticated_client(db_session, UserRole.ADMIN)
+
+
+@pytest.fixture
+def operator_client(client, db_session):
+    return _make_authenticated_client(db_session, UserRole.OPERATOR)
+
+
+@pytest.fixture
+def employee(admin_client):
+
+    response = admin_client.post(
         "/employees", json={"name": "John Smith", "role": "Lathe Operator"}
     )
     assert response.status_code == 201
@@ -47,8 +73,8 @@ def employee(client):
 
 
 @pytest.fixture
-def order(client):
+def order(admin_client):
 
-    response = client.post("/orders", json={"element_name": "DRILL", "count": 15})
+    response = admin_client.post("/orders", json={"element_name": "DRILL", "count": 15})
     assert response.status_code == 201
     return response.json()
