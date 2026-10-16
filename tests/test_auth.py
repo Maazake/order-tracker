@@ -15,3 +15,5 @@ def test_login_wrong_password_returns_401(client):
 
     login = client.post("/auth/login", data={"username": "John", "password": "wrong"})
     assert login.status_code == 401
+
+    

@@ -39,9 +39,16 @@ def client(db_session):
     app.dependency_overrides.clear()
 
 
-def _make_authenticated_client(db_session, role: UserRole) -> TestClient:
+@pytest.fixture(scope="session")
+def password_hash_value():
+    return hash_password("123")
+
+
+def _make_authenticated_client(
+    db_session, role: UserRole, hashed_password: str
+) -> TestClient:
     user = UserDB(
-        username=f"test-{role.value}", hashed_password=hash_password("123"), role=role
+        username=f"test-{role.value}", hashed_password=hashed_password, role=role
     )
     db_session.add(user)
     db_session.flush()
@@ -53,13 +60,15 @@ def _make_authenticated_client(db_session, role: UserRole) -> TestClient:
 
 
 @pytest.fixture
-def admin_client(client, db_session):
-    return _make_authenticated_client(db_session, UserRole.ADMIN)
+def admin_client(client, db_session, password_hash_value):
+    return _make_authenticated_client(db_session, UserRole.ADMIN, password_hash_value)
 
 
 @pytest.fixture
-def operator_client(client, db_session):
-    return _make_authenticated_client(db_session, UserRole.OPERATOR)
+def operator_client(client, db_session, password_hash_value):
+    return _make_authenticated_client(
+        db_session, UserRole.OPERATOR, password_hash_value
+    )
 
 
 @pytest.fixture
