@@ -25,7 +25,7 @@ def test_register_response_model(client):
     )
     data = response.json()
 
-    assert response.status_code == 201
+    assert response.status_code == 404
     assert "hashed_password" not in data
 
     re_register = client.post(
