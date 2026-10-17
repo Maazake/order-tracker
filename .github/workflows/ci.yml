@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: download code
+        uses: actions/checkout@v6
+
+      - name: install uv
+        uses: astral-sh/setup-uv@v7
+
+      - name: install dependecies
+        run: uv sync --locked
+
+      - name: ruff - linter
+        run: uv run ruff check .
+
+      - name: ruff - format
+        run: uv run ruff format --check .
+
+      - name: tests
+        run: uv run pytest
