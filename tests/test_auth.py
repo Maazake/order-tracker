@@ -23,10 +23,16 @@ def test_register_response_model(client):
     )
     data = response.json()
 
-    assert response.status_code == 200
-    assert "hashed_password " not in data
+    assert response.status_code == 201
+    assert "hashed_password" not in data
 
     re_register = client.post(
         "/auth/register", json={"username": "John", "password": "Smith"}
     )
     assert re_register.status_code == 409
+
+    register_admin = client.post(
+        "/auth/register", json={"username": "Tom", "password": "Jerry", "role": "admin"}
+    )
+    assert register_admin.status_code == 201
+    assert register_admin.json()["role"] == "operator"

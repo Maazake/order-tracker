@@ -225,7 +225,9 @@ def create_new_employee(
     return new_employee
 
 
-@app.post("/auth/register", response_model=UserResponse)
+@app.post(
+    "/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+)
 def register_user(user_in: UserCreate, db: DbSession):
     user = db.scalars(select(UserDB).where(UserDB.username == user_in.username)).first()
     if user:
