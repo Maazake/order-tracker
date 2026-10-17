@@ -21,6 +21,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "httpx2>=2.13.1",
+    "pre-commit>=4.7.0",
     "pytest>=9.1.1",
     "pytest-env>=1.8.0",
     "ruff>=0.16.10",
@@ -32,9 +33,12 @@ entrypoint = "app.main:app"
 [tool.ruff]
 src = ["."]
 extend-exclude = ["alembic/versions"]
+force-exclude = true
 
 [tool.pytest.ini_options]
 env = [
     "SECRET_KEY=test-only-secret-key-not-for-production-0123",
-    "DATABASE_URL=postgresql+psycopg2://user:password@host:5432/nazwa_bazy"
+    "DATABASE_URL=postgresql+psycopg2://user:password@host:5432/nazwa_bazy",
+    "admin_username=admin",
+    "admin_password=smth"
 ]
