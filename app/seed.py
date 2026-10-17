@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.database import Base, SessionLocal, engine
 from app.models import EmployeeDB, OrderDB, OrderStepDB, UserDB
 from app.schemas import (
@@ -108,8 +109,8 @@ def create_admin(db: Session) -> None:
         return
     db.add(
         UserDB(
-            username="mazak",
-            hashed_password=hash_password("123"),
+            username=settings.admin_username,
+            hashed_password=hash_password(settings.admin_password.get_secret_value()),
             role=UserRole.ADMIN,
         )
     )

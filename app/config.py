@@ -6,7 +6,8 @@ class Settings(BaseSettings):
     secret_key: SecretStr = Field(min_length=32)
     database_url: str
     token_expire_minutes: int = 60
-
+    admin_username: str = "admin"
+    admin_password: SecretStr
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
