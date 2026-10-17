@@ -8,6 +8,7 @@ def test_orders_require_login(client):
 
     assert response.status_code == 401
 
+
 def test_get_orders_empty(operator_client):
     response = operator_client.get("/orders")
 
@@ -109,6 +110,7 @@ def test_get_order_by_status(admin_client, operator_client, employee, order):
     assert response.status_code == 200
     assert len(data) == 1
     assert data[0]["id"] == order["id"]
+
 
 @pytest.mark.parametrize("desc", [False, True])
 def test_sort_orders_by_count(admin_client, operator_client, desc):

@@ -2,12 +2,12 @@ from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 import jwt
-from config import Settings
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pwdlib import PasswordHash
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.database import get_db
 from app.models import UserDB
 from app.schemas import UserRole
@@ -23,9 +23,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return password_hash.verify(plain_password, hashed_password)
 
 
-SECRET_KEY = Settings.secret_key
+SECRET_KEY = settings.secret_key.get_secret_value()
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.token_expire_minutes
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:

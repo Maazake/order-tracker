@@ -16,7 +16,9 @@ def test_start_step(operator_client, order, employee):
 
 def test_start_step_unknown_employee_returns_404(operator_client, order):
     step_id = order["steps"][0]["id"]
-    response = operator_client.post(f"/steps/{step_id}/start", json={"employee_id": 999})
+    response = operator_client.post(
+        f"/steps/{step_id}/start", json={"employee_id": 999}
+    )
 
     assert response.status_code == 404
 

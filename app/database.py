@@ -1,9 +1,9 @@
+from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
-from sqlmodel import create_engine
 
-DATABASE_URL = (
-    "postgresql+psycopg2://postgres:postgrespassword@localhost:5432/order_tracker"
-)
+from app.config import settings
+
+DATABASE_URL = settings.database_url
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
