@@ -225,12 +225,12 @@ def create_new_employee(
     return new_employee
 
 
-@app.post("/auth/register")
+@app.post("/auth/register", response_model=UserResponse)
 def register_user(user_in: UserCreate, db: DbSession):
     user = db.scalars(select(UserDB).where(UserDB.username == user_in.username)).first()
     if user:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+            status_code=status.HTTP_409_CONFLICT,
             detail="Username already registered",
         )
 
@@ -269,7 +269,7 @@ def login_for_access_token(
 def get_me(current_user: Annotated[UserDB, Depends(get_current_user)]):
     return current_user
 
+
 @app.get("/users", response_model=list[UserResponse])
 def get_all_users(db: DbSession, _: Annotated[UserDB, Depends(require_admin)]):
     return db.scalars(select(UserDB)).all()
-

@@ -16,4 +16,17 @@ def test_login_wrong_password_returns_401(client):
     login = client.post("/auth/login", data={"username": "John", "password": "wrong"})
     assert login.status_code == 401
 
-    
+
+def test_register_response_model(client):
+    response = client.post(
+        "/auth/register", json={"username": "John", "password": "Smith"}
+    )
+    data = response.json()
+
+    assert response.status_code == 200
+    assert "hashed_password " not in data
+
+    re_register = client.post(
+        "/auth/register", json={"username": "John", "password": "Smith"}
+    )
+    assert re_register.status_code == 409
