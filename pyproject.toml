@@ -15,7 +15,6 @@ dependencies = [
     "pydantic-settings>=2.15.0",
     "pyjwt>=2.15.1",
     "sqlalchemy>=2.1.3",
-    "sqlmodel>=0.0.48",
     "uvicorn[standard]>=0.54.0",
 ]
 
@@ -37,4 +36,5 @@ extend-exclude = ["alembic/versions"]
 [tool.pytest.ini_options]
 env = [
     "SECRET_KEY=test-only-secret-key-not-for-production-0123",
+    "DATABASE_URL=postgresql+psycopg2://user:password@host:5432/nazwa_bazy"
 ]
