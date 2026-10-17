@@ -10,8 +10,8 @@ class UserRole(StrEnum):
 
 
 class UserCreate(BaseModel):
-    username: str
-    password: str
+    username: str = Field(min_length=1)
+    password: str = Field(min_length=3)
 
 
 class UserResponse(BaseModel):
@@ -19,8 +19,7 @@ class UserResponse(BaseModel):
     username: str
     role: UserRole
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Token(BaseModel):

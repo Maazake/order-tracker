@@ -1,8 +1,8 @@
-import os
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
 import jwt
+from config import Settings
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pwdlib import PasswordHash
@@ -23,7 +23,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return password_hash.verify(plain_password, hashed_password)
 
 
-SECRET_KEY = os.getenv("SECRET_KEY", "very_much_secret_cod3")
+SECRET_KEY = Settings.secret_key
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
