@@ -11,3 +11,6 @@ postgres_data/
 
 .vscode/
 .idea/
+
+.coverage
+htmlcov/
