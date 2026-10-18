@@ -9,6 +9,21 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+          POSTGRES_DB: order_tracker_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: download code
         uses: actions/checkout@v6
@@ -16,7 +31,7 @@ jobs:
       - name: install uv
         uses: astral-sh/setup-uv@v7
 
-      - name: install dependecies
+      - name: install dependencies
         run: uv sync --locked
 
       - name: ruff - linter
@@ -26,4 +41,5 @@ jobs:
         run: uv run ruff format --check .
 
       - name: tests
-        run: uv run pytest
+        run: uv run pytest --cov=app --cov-report=term-missing --cov-fail-under=95
+      

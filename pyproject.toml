@@ -23,6 +23,7 @@ dev = [
     "httpx2>=2.13.1",
     "pre-commit>=4.7.0",
     "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
     "pytest-env>=1.8.0",
     "ruff>=0.16.10",
 ]
@@ -38,7 +39,12 @@ force-exclude = true
 [tool.pytest.ini_options]
 env = [
     "SECRET_KEY=test-only-secret-key-not-for-production-0123",
-    "DATABASE_URL=postgresql+psycopg2://user:password@host:5432/nazwa_bazy",
+    "DATABASE_URL=postgresql+psycopg2://postgres:postgrespassword@localhost:5432/order_tracker_test",
     "admin_username=admin",
     "admin_password=smth"
+]
+
+[tool.coverage.run]
+omit = [
+    "app/seed.py"
 ]

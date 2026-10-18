@@ -1,6 +1,6 @@
 from datetime import date, datetime
 
-from sqlalchemy import DateTime, ForeignKey
+from sqlalchemy import DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -19,7 +19,7 @@ class UserDB(Base):
 class EmployeeDB(Base):
     __tablename__ = "employees"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str]
     role: Mapped[str]
 
@@ -29,7 +29,7 @@ class EmployeeDB(Base):
 class OrderDB(Base):
     __tablename__ = "orders"
 
-    id: Mapped[int] = mapped_column(primary_key=True, index=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
     element_name: Mapped[str]
     count: Mapped[int]
     planned_completion_date: Mapped[date]
@@ -43,9 +43,12 @@ class OrderDB(Base):
 
 class OrderStepDB(Base):
     __tablename__ = "order_steps"
+    __table_args__ = (
+        UniqueConstraint("order_id", "step_order", name="uq_order_steps_order_step"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"))
+    order_id: Mapped[int] = mapped_column(ForeignKey("orders.id"), index=True)
     step_name: Mapped[str]
     step_order: Mapped[int]
     status: Mapped[str] = mapped_column(default=StepStatus.PENDING)

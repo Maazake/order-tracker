@@ -1,3 +1,6 @@
+import pytest
+
+
 def test_login_returns_working_token(client):
     client.post("/auth/register", json={"username": "John", "password": "Smithson"})
 
@@ -44,3 +47,18 @@ def test_register_response_model(client):
 def test_register_empty_strings(client):
     response = client.post("/auth/register", json={"username": "", "password": "123"})
     assert response.status_code == 422
+
+
+@pytest.mark.parametrize(
+    ("method", "url"),
+    [
+        ("POST", "/orders"),
+        ("POST", "/employees"),
+        ("GET", "/employees"),
+        ("GET", "/users"),
+    ],
+)
+def test_operators_gets_403_on_admin_endpoints(operator_client, method, url):
+    response = operator_client.request(method, url)
+
+    assert response.status_code == 403
