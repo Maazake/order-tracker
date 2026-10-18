@@ -66,12 +66,18 @@ def get_all_orders(
         query.order_by(column, OrderDB.id)
         .limit(limit)
         .offset(offset)
-        .options(selectinload(OrderDB.steps))
+        .options(
+            selectinload(OrderDB.steps).selectinload(OrderStepDB.assigned_employee)
+        )
     ).all()
 
 
-def find_order_or_404(order_id: int, db: Session):
-    order = db.get(OrderDB, order_id)
+def find_order_or_404(order_id: int, db: Session, options=None):
+    order = db.get(
+        OrderDB,
+        order_id,
+        options=options,
+    )
     if not order:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -86,7 +92,13 @@ def get_single_order(
     db: DbSession,
     _: Annotated[UserDB, Depends(get_current_user)],
 ):
-    order = find_order_or_404(order_id, db)
+    order = find_order_or_404(
+        order_id,
+        db,
+        options=[
+            selectinload(OrderDB.steps).selectinload(OrderStepDB.assigned_employee)
+        ],
+    )
     return order
 
 

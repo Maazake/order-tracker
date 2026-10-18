@@ -20,7 +20,7 @@ REST API for tracking production orders in a machining workshop. Every order mov
   - a step can only be started when the previous step is `done`,
   - a step can only be completed when it is `in_progress`,
   - starting a step assigns an employee and records `started_at`; completing it records `completed_at` and an optional note.
-- **Listing orders** with pagination (`limit`, `offset`), filtering by step status and sorting by any column (ascending or descending). Steps are eager-loaded with `selectinload` to avoid N+1 queries.
+- **Listing orders** with pagination (`limit`, `offset`), filtering by step status and sorting by any column (ascending or descending). Steps and assigned employees are eager-loaded with `selectinload` to avoid N+1 queries.
 - **Roles.** `operator` and `admin`, see the permissions table below.
 
 ## Design decisions
@@ -110,8 +110,6 @@ tests/          # API tests
 
 ## Roadmap
 
-- [ ] Run tests against PostgreSQL instead of SQLite (also in CI) and add coverage reporting
-- [ ] Eager-load employees assigned to steps (remaining N+1 query)
 - [ ] Move business logic into a service layer; seed realistic data through it
 - [ ] Dockerfile for the application
 - [ ] Deployment with a live demo and demo accounts
