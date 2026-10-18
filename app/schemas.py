@@ -82,7 +82,7 @@ class OrderStep(BaseModel):
     order_id: int
     step_name: str
     step_order: int
-    status: str
+    status: StepStatus
     note: str | None = None
     started_at: datetime | None = None
     completed_at: datetime | None = None
