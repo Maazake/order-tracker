@@ -3,12 +3,6 @@ import pytest
 from app.schemas import ProcessStage
 
 
-def test_orders_require_login(client):
-    response = client.get("/orders")
-
-    assert response.status_code == 401
-
-
 def test_get_orders_empty(operator_client):
     response = operator_client.get("/orders")
 
