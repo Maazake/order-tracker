@@ -11,7 +11,7 @@ REST API for tracking production orders in a machining workshop. Every order mov
 - **JWT** authentication (PyJWT), Argon2 password hashing (pwdlib)
 - **pydantic-settings** for configuration
 - **pytest** with FastAPI `TestClient`, **ruff**, **pre-commit**, **GitHub Actions**
-- **uv** for dependency management
+- **uv** for dependency management, **Docker** and Docker Compose for running the app
 
 ## Features
 
@@ -59,28 +59,48 @@ Example query: `GET /orders?status=in_progress&sort=planned_completion_date&desc
 
 ## Running locally
 
-Requirements: [uv](https://docs.astral.sh/uv/) and Docker.
+### Option 1: everything in Docker
+
+Requirements: Docker.
 
 ```bash
 git clone https://github.com/Maazake/order-tracker.git
 cd order-tracker
 
-# 1. Start PostgreSQL
-docker compose up -d
-
-# 2. Create the config file and fill in the values (instructions inside)
+# 1. Create the config file and fill in the values (instructions inside)
 cp .env.example .env
-# For the database from docker-compose:
+
+# 2. Build and start the database and the API
+#    (migrations run automatically when the API container starts)
+docker compose up --build
+
+# 3. In a second terminal: load demo data
+docker compose exec api python -m app.seed
+```
+
+The API container gets its `DATABASE_URL` from `docker-compose.yml`, pointing at the `db` service, so the value in `.env` only matters for option 2.
+
+### Option 2: API on your machine, database in Docker
+
+Better for development: code changes reload automatically. Requirements: [uv](https://docs.astral.sh/uv/) and Docker.
+
+```bash
+# 1. Start only PostgreSQL
+docker compose up -d db
+
+# 2. In .env, point the app at the database exposed on localhost:
 # DATABASE_URL=postgresql+psycopg2://postgres:postgrespassword@localhost:5432/order_tracker
 
-# 3. Install dependencies, run migrations and load sample data
+# 3. Install dependencies, run migrations and load demo data
 uv sync
 uv run alembic upgrade head
 uv run python -m app.seed
 
-# 4. Start the API
+# 4. Start the API with auto-reload
 uv run fastapi dev
 ```
+
+### Logging in
 
 Open http://localhost:8000/docs, click **Authorize** and log in with one of the accounts:
 
@@ -127,9 +147,10 @@ app/
   seed.py       # demo data, admin and demo accounts
 alembic/        # database migrations
 tests/          # API tests
+Dockerfile      # API image: dependencies layer first, then code
+docker-compose.yml  # PostgreSQL + API
 ```
 
 ## Roadmap
 
-- [ ] Dockerfile for the application
 - [ ] Deployment with a live demo and demo accounts
