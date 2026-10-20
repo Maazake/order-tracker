@@ -30,7 +30,7 @@ def start_step(
             )
         )
         if previous is None or previous.status != StepStatus.DONE:
-            raise ConflictError("Previus step is not done yet")
+            raise ConflictError("Previous step is not done yet")
 
     step.status = StepStatus.IN_PROGRESS
     step.assigned_employee_id = employee_id
@@ -50,7 +50,7 @@ def complete_step(
         raise NotFoundError(f"Step ID {step_id} not found")
 
     if step.status != StepStatus.IN_PROGRESS:
-        raise ConflictError(f"Stop is already {step.status}")
+        raise ConflictError(f"Step is already {step.status}")
 
     if note is not None:
         step.note = note
