@@ -1,12 +1,14 @@
-from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Query, status
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
+from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app import services
 from app.database import get_db
+from app.exceptions import ConflictError, NotFoundError
 from app.models import EmployeeDB, OrderDB, OrderStepDB, UserDB
 from app.schemas import (
     Employee,
@@ -14,7 +16,6 @@ from app.schemas import (
     Order,
     OrderResponse,
     OrderStepResponse,
-    ProcessStage,
     SortOrder,
     StepComplete,
     StepStart,
@@ -35,6 +36,16 @@ from app.security import (
 DbSession = Annotated[Session, Depends(get_db)]
 
 app = FastAPI()
+
+
+@app.exception_handler(NotFoundError)
+async def handle_not_found(request: Request, exc: NotFoundError):
+    return JSONResponse(status_code=404, content={"detail": str(exc)})
+
+
+@app.exception_handler(ConflictError)
+async def handle_conflict_error(request: Request, exc: ConflictError):
+    return JSONResponse(status_code=409, content={"detail": str(exc)})
 
 
 @app.get("/orders", response_model=list[OrderResponse])
@@ -107,37 +118,11 @@ def create_new_order(
     order_data: Order, db: DbSession, _: Annotated[UserDB, Depends(require_admin)]
 ):
 
-    new_order = OrderDB(**order_data.model_dump())
-    db.add(new_order)
-    db.flush()
+    new_order = services.create_order(db, order_data)
 
-    steps_to_create = []
-
-    for step_number, stage in enumerate(ProcessStage, start=1):
-        step = OrderStepDB(
-            order_id=new_order.id,
-            step_name=stage.value,
-            step_order=step_number,
-            status=StepStatus.PENDING,
-        )
-        steps_to_create.append(step)
-
-    db.add_all(steps_to_create)
     db.commit()
     db.refresh(new_order)
-
     return new_order
-
-
-def find_step_or_404(step_id: int, db: Session):
-    step = db.get(OrderStepDB, step_id)
-
-    if not step:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Step ID {step_id} not found",
-        )
-    return step
 
 
 @app.post("/steps/{step_id}/start", response_model=OrderStepResponse)
@@ -147,37 +132,7 @@ def start_step(
     data: StepStart,
     _: Annotated[UserDB, Depends(get_current_user)],
 ):
-    step = find_step_or_404(step_id, db)
-    employee = db.get(EmployeeDB, data.employee_id)
-
-    if not employee:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Employee ID {data.employee_id} not found",
-        )
-
-    if step.status != StepStatus.PENDING:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Step is already {step.status}",
-        )
-
-    if step.step_order > 1:
-        previous = db.scalar(
-            select(OrderStepDB).where(
-                OrderStepDB.order_id == step.order_id,
-                OrderStepDB.step_order == step.step_order - 1,
-            )
-        )
-        if previous is None or previous.status != StepStatus.DONE:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="Previous step is not done yet",
-            )
-
-    step.status = StepStatus.IN_PROGRESS
-    step.assigned_employee_id = employee.id
-    step.started_at = datetime.now(UTC)
+    step = services.start_step(db, step_id, data.employee_id)
     db.commit()
     db.refresh(step)
     return step
@@ -190,18 +145,7 @@ def complete_step(
     db: DbSession,
     _: Annotated[UserDB, Depends(get_current_user)],
 ):
-    step = find_step_or_404(step_id, db)
-
-    if step.status != StepStatus.IN_PROGRESS:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Step ID {step_id} is not in progress",
-        )
-
-    step.status = StepStatus.DONE
-    step.completed_at = datetime.now(UTC)
-    if data.note is not None:
-        step.note = data.note
+    step = services.complete_step(db, step_id, data.note)
     db.commit()
     db.refresh(step)
     return step
