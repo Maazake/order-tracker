@@ -4,6 +4,14 @@
 
 REST API for tracking production orders in a machining workshop. Every order moves through a fixed sequence of manufacturing steps: cutting, turning, milling, polishing, washing, quality control and packing. Operators start and complete steps, and the API enforces the order in which that can happen.
 
+## Live demo
+
+**https://order-tracker-426b.onrender.com** (opens the interactive API docs)
+
+Click **Authorize** and log in with the public demo account: `demo` / `demo1234`. It is an operator account: you can browse orders and start or complete steps, but not create or delete anything.
+
+The app runs on a free plan and goes to sleep when unused, so the first request can take up to a minute.
+
 ## Tech stack
 
 - **Python 3.14**, **FastAPI**
@@ -12,6 +20,7 @@ REST API for tracking production orders in a machining workshop. Every order mov
 - **pydantic-settings** for configuration
 - **pytest** with FastAPI `TestClient`, **ruff**, **pre-commit**, **GitHub Actions**
 - **uv** for dependency management, **Docker** and Docker Compose for running the app
+- **Render** (app, built from the Dockerfile) and **Neon** (managed PostgreSQL) for hosting
 
 ## Features
 
@@ -132,6 +141,14 @@ The test suite covers the happy paths and error paths: 401 (missing, expired, fo
 - **pre-commit** runs ruff (lint and format) before every commit.
 - **GitHub Actions** starts a PostgreSQL service container and runs ruff and the full test suite with coverage (minimum 95%) on every pull request and on every push to `master`.
 
+## Deployment
+
+- **Render** builds the image from the `Dockerfile` and runs it. Configuration (`DATABASE_URL`, `SECRET_KEY`, admin credentials) is set as environment variables in the Render dashboard, never in the repository or the image.
+- **Neon** hosts PostgreSQL in the same region as the app, so database round trips stay short.
+- **Migrations** run automatically when the container starts (`alembic upgrade head` before the server). If a migration fails, the server does not start.
+- **Continuous deployment:** a merge to `master` triggers a new deploy once the GitHub Actions checks pass.
+- **Demo data** was loaded once by running the idempotent seed script locally with `DATABASE_URL` pointing at the production database.
+
 ## Project structure
 
 ```
@@ -153,4 +170,4 @@ docker-compose.yml  # PostgreSQL + API
 
 ## Roadmap
 
-- [ ] Deployment with a live demo and demo accounts
+- [ ] LLM feature: answer natural-language questions about orders (read-only text-to-SQL)
