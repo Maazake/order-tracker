@@ -1,7 +1,7 @@
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
@@ -46,6 +46,11 @@ async def handle_not_found(request: Request, exc: NotFoundError):
 @app.exception_handler(ConflictError)
 async def handle_conflict_error(request: Request, exc: ConflictError):
     return JSONResponse(status_code=409, content={"detail": str(exc)})
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/orders", response_model=list[OrderResponse])
