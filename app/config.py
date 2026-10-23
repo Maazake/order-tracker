@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     admin_password: SecretStr
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
     anthropic_api_key: SecretStr | None = None
-    annthropic_model: str = "claude-haiku-5-5"
+    anthropic_model: str = "claude-haiku-5-5"
 
 
 settings = Settings()

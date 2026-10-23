@@ -1,11 +1,43 @@
+import json
 from datetime import UTC, datetime
 
+import anthropic
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.config import settings
 from app.exceptions import ConflictError, NotFoundError
 from app.models import EmployeeDB, OrderDB, OrderStepDB
 from app.schemas import Order, ProcessStage, StepStatus
+
+SUMMARY_SYSTEM_PROMPT = """You summarize production orders for a production manager.
+You will receive order data as JSON inside <order> tags.
+Write exactly 2 sentences in English.
+Use only facts from the data. Do not guess or add information.
+If the order is finished, say so first.
+If the order is overdue, mention it first.
+If the order is not finished and no step is in progress, mention it first.
+Write in plain language. Do not mention field names, JSON or null values."""
+
+
+def summarize_order(order: OrderDB, client: anthropic.Anthropic) -> str:
+    facts = build_order_facts(order)
+    order_json = json.dumps(facts, ensure_ascii=False, indent=2)
+    content = f"<order>\n{order_json}\n</order>"
+
+    response = client.messages.create(
+        model=settings.anthropic_model,
+        max_tokens=1000,
+        system=SUMMARY_SYSTEM_PROMPT,
+        output_config={"effort": "low"},
+        messages=[{"role": "user", "content": content}],
+    )
+
+    text = next((b.text for b in response.content if b.type == "text"), None)
+    if text is None:
+        raise RuntimeError(detail=f"Reason for no text: {response.stop_reason}")
+
+    return text
 
 
 def start_step(
@@ -116,4 +148,5 @@ def build_order_facts(order: OrderDB, now: datetime | None = None) -> dict:
         "planned_completion_date": order.planned_completion_date.isoformat(),
         "days_overdue": days_overdue,
         "notes": notes,
+        "is_finished": is_finished,
     }
