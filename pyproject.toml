@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.14"
 dependencies = [
     "alembic>=1.20.0",
+    "anthropic>=2.1.0",
     "fastapi[standard]>=0.142.2",
     "psycopg2-binary>=2.9.13",
     "pwdlib[argon2]>=0.3.1",

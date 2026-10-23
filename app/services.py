@@ -80,3 +80,40 @@ def create_order(db: Session, order_data: Order) -> OrderDB:
     db.add_all(steps_to_create)
     db.flush()
     return new_order
+
+
+def build_order_facts(order: OrderDB, now: datetime | None = None) -> dict:
+    now = now or datetime.now(UTC)
+
+    done = [s for s in order.steps if s.status == StepStatus.DONE]
+    current_step = next(
+        (c for c in order.steps if c.status == StepStatus.IN_PROGRESS), None
+    )
+    current = None
+
+    if current_step is not None:
+        employee = current_step.assigned_employee
+        current = {
+            "step_name": current_step.step_name,
+            "employee": employee.name if employee is not None else None,
+        }
+
+    is_finished = len(done) == len(order.steps)
+    days_late = (now.date() - order.planned_completion_date).days
+
+    days_overdue = 0
+    if days_late > 0 and not is_finished:
+        days_overdue = days_late
+
+    notes = [f"{n.step_name}: {n.note}" for n in order.steps if n.note is not None]
+
+    return {
+        "element_name": order.element_name,
+        "count": order.count,
+        "completed_steps": len(done),
+        "total_steps": len(order.steps),
+        "current_step": current,
+        "planned_completion_date": order.planned_completion_date.isoformat(),
+        "days_overdue": days_overdue,
+        "notes": notes,
+    }
