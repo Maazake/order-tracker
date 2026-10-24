@@ -240,6 +240,7 @@ def get_all_users(db: DbSession, _: Annotated[UserDB, Depends(require_admin)]):
     return db.scalars(select(UserDB)).all()
 
 
+# TODO: set this endpoint for users after limiting requests
 @app.get("/orders/{order_id}/summary", response_model=OrderSummaryResponse)
 def get_order_summary(
     order_id: int,
