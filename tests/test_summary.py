@@ -1,16 +1,75 @@
+from dataclasses import dataclass
 from datetime import UTC, date, datetime
+
+import pytest
 
 from app.models import OrderDB, OrderStepDB
 from app.schemas import StepStatus
-from app.services import build_order_facts
+from app.services import build_order_facts, summarize_order
 
 NOW = datetime(2026, 12, 12, 9, 0, 0, 0, tzinfo=UTC)
+
+
+@dataclass
+class FakeBlock:
+    type: str
+    text: str
+
+
+@dataclass
+class FakeResponse:
+    content: list[FakeBlock]
+    stop_reason: str
+
+
+class FakeMessages:
+    def __init__(self, response):
+        self.response = response
+
+    def create(self, **kwargs):
+        return self.response
+
+
+class FakeClient:
+    def __init__(self, response):
+        self.messages = FakeMessages(response)
 
 
 def make_order():
     return OrderDB(
         element_name="VALVE", count=10, planned_completion_date=date(2026, 12, 15)
     )
+
+
+def test_summarize_order_returns_text_from_model():
+    new_order = make_order()
+    fake_block = FakeBlock(type="text", text="fake summary")
+    fake_response = FakeResponse(content=[fake_block], stop_reason="end_turn")
+    fake_client = FakeClient(fake_response)
+
+    summary = summarize_order(new_order, fake_client)
+
+    assert summary == "fake summary"
+
+
+def test_summarize_order_with_empty_text():
+    new_order = make_order()
+    fake_block = FakeBlock(type="text", text="")
+    fake_response = FakeResponse(content=[fake_block], stop_reason="end_turn")
+    fake_client = FakeClient(fake_response)
+
+    with pytest.raises(RuntimeError):
+        summarize_order(new_order, fake_client)
+
+
+def test_summarize_order_without_text_block():
+    new_order = make_order()
+    fake_block = FakeBlock(type="thinking", text="this is not a text block")
+    fake_response = FakeResponse(content=[fake_block], stop_reason="max_tokens")
+    fake_client = FakeClient(fake_response)
+
+    with pytest.raises(RuntimeError):
+        summarize_order(new_order, fake_client)
 
 
 def test_not_started_order():

@@ -34,8 +34,8 @@ def summarize_order(order: OrderDB, client: anthropic.Anthropic) -> str:
     )
 
     text = next((b.text for b in response.content if b.type == "text"), None)
-    if text is None:
-        raise RuntimeError(detail=f"Reason for no text: {response.stop_reason}")
+    if not text:
+        raise RuntimeError(f"Reason for no text: {response.stop_reason}")
 
     return text
 
