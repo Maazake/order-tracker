@@ -35,7 +35,11 @@ from app.security import (
 
 DbSession = Annotated[Session, Depends(get_db)]
 
-app = FastAPI()
+app = FastAPI(
+    title="Order Tracker API",
+    description="Tracking production orders step by step: cutting → milling → quality control → packing.",
+    version="1.0.0",
+)
 
 
 @app.exception_handler(NotFoundError)
@@ -53,7 +57,7 @@ def root():
     return RedirectResponse(url="/docs")
 
 
-@app.get("/orders", response_model=list[OrderResponse])
+@app.get("/orders", response_model=list[OrderResponse], tags=["orders"])
 def get_all_orders(
     db: DbSession,
     _: Annotated[UserDB, Depends(get_current_user)],
@@ -102,7 +106,7 @@ def find_order_or_404(order_id: int, db: Session, options=None):
     return order
 
 
-@app.get("/orders/{order_id}", response_model=OrderResponse)
+@app.get("/orders/{order_id}", response_model=OrderResponse, tags=["orders"])
 def get_single_order(
     order_id: int,
     db: DbSession,
@@ -118,7 +122,12 @@ def get_single_order(
     return order
 
 
-@app.post("/orders", response_model=OrderResponse, status_code=status.HTTP_201_CREATED)
+@app.post(
+    "/orders",
+    response_model=OrderResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["orders"],
+)
 def create_new_order(
     order_data: Order, db: DbSession, _: Annotated[UserDB, Depends(require_admin)]
 ):
@@ -130,7 +139,7 @@ def create_new_order(
     return new_order
 
 
-@app.post("/steps/{step_id}/start", response_model=OrderStepResponse)
+@app.post("/steps/{step_id}/start", response_model=OrderStepResponse, tags=["steps"])
 def start_step(
     step_id: int,
     db: DbSession,
@@ -143,7 +152,7 @@ def start_step(
     return step
 
 
-@app.post("/steps/{step_id}/complete", response_model=OrderStepResponse)
+@app.post("/steps/{step_id}/complete", response_model=OrderStepResponse, tags=["steps"])
 def complete_step(
     step_id: int,
     data: StepComplete,
@@ -156,7 +165,9 @@ def complete_step(
     return step
 
 
-@app.delete("/orders/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete(
+    "/orders/{order_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["orders"]
+)
 def delete_order(
     order_id: int,
     db: DbSession,
@@ -167,13 +178,16 @@ def delete_order(
     db.commit()
 
 
-@app.get("/employees", response_model=list[EmployeeResponse])
+@app.get("/employees", response_model=list[EmployeeResponse], tags=["employees"])
 def get_all_employees(db: DbSession, _: Annotated[UserDB, Depends(require_admin)]):
     return db.scalars(select(EmployeeDB).order_by(EmployeeDB.id)).all()
 
 
 @app.post(
-    "/employees", response_model=EmployeeResponse, status_code=status.HTTP_201_CREATED
+    "/employees",
+    response_model=EmployeeResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["employees"],
 )
 def create_new_employee(
     employee_data: Employee, db: DbSession, _: Annotated[UserDB, Depends(require_admin)]
@@ -187,7 +201,10 @@ def create_new_employee(
 
 
 @app.post(
-    "/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED
+    "/auth/register",
+    response_model=UserResponse,
+    status_code=status.HTTP_201_CREATED,
+    tags=["auth"],
 )
 def register_user(user_in: UserCreate, db: DbSession):
     user = db.scalars(select(UserDB).where(UserDB.username == user_in.username)).first()
@@ -207,7 +224,7 @@ def register_user(user_in: UserCreate, db: DbSession):
     return new_user
 
 
-@app.post("/auth/login", response_model=Token)
+@app.post("/auth/login", response_model=Token, tags=["auth"])
 def login_for_access_token(
     db: DbSession, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
 ):
@@ -228,11 +245,11 @@ def login_for_access_token(
     return Token(access_token=access_token, token_type="bearer")
 
 
-@app.get("/users/me", response_model=UserResponse)
+@app.get("/users/me", response_model=UserResponse, tags=["users"])
 def get_me(current_user: Annotated[UserDB, Depends(get_current_user)]):
     return current_user
 
 
-@app.get("/users", response_model=list[UserResponse])
+@app.get("/users", response_model=list[UserResponse], tags=["users"])
 def get_all_users(db: DbSession, _: Annotated[UserDB, Depends(require_admin)]):
     return db.scalars(select(UserDB)).all()
