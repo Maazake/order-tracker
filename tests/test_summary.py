@@ -1,38 +1,14 @@
-from dataclasses import dataclass
 from datetime import UTC, date, datetime
 
 import pytest
 
+from app.config import settings
 from app.models import OrderDB, OrderStepDB
 from app.schemas import StepStatus
 from app.services import build_order_facts, summarize_order
+from tests.fakes import FakeBlock, FakeClient, FakeResponse
 
 NOW = datetime(2026, 12, 12, 9, 0, 0, 0, tzinfo=UTC)
-
-
-@dataclass
-class FakeBlock:
-    type: str
-    text: str
-
-
-@dataclass
-class FakeResponse:
-    content: list[FakeBlock]
-    stop_reason: str
-
-
-class FakeMessages:
-    def __init__(self, response):
-        self.response = response
-
-    def create(self, **kwargs):
-        return self.response
-
-
-class FakeClient:
-    def __init__(self, response):
-        self.messages = FakeMessages(response)
 
 
 def make_order():
@@ -70,6 +46,38 @@ def test_summarize_order_without_text_block():
 
     with pytest.raises(RuntimeError):
         summarize_order(new_order, fake_client)
+
+
+def test_admin_get_200_and_summary(admin_client, order, fake_llm):
+    response = admin_client.get(f"/orders/{order['id']}/summary")
+    assert response.status_code == 200
+    assert response.json()["summary"] == "fake summary"
+    assert fake_llm.messages.call_counts == 1
+
+
+def test_operator_client_get_403_on_summary(operator_client, order, fake_llm):
+    response = operator_client.get(f"/orders/{order['id']}/summary")
+    assert response.status_code == 403
+    assert fake_llm.messages.call_counts == 0
+
+
+def test_not_logged_in_user_asks_for_summary(client, order, fake_llm):
+    response = client.get(f"/orders/{order['id']}/summary")
+    assert response.status_code == 401
+    assert fake_llm.messages.call_counts == 0
+
+
+def test_summary_wrong_id_returns_404(admin_client, fake_llm):
+    response = admin_client.get("/orders/999/summary")
+    assert response.status_code == 404
+    assert fake_llm.messages.call_counts == 0
+
+
+def test_no_key_returns_503(monkeypatch, admin_client, order):
+    monkeypatch.setattr(settings, "anthropic_api_key", None)
+    response = admin_client.get(f"/orders/{order['id']}/summary")
+
+    assert response.status_code == 503
 
 
 def test_not_started_order():
@@ -144,11 +152,11 @@ def test_orders_with_notes():
         ),
         OrderStepDB(
             step_name="turning",
-            step_order=3,
+            step_order=2,
             status=StepStatus.IN_PROGRESS,
             note="cut too short and I have problems",
         ),
-        OrderStepDB(step_name="turning", step_order=2, status=StepStatus.PENDING),
+        OrderStepDB(step_name="milling", step_order=3, status=StepStatus.PENDING),
     ]
 
     facts = build_order_facts(new_order, now=NOW)
