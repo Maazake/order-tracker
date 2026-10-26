@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, selectinload
 from app import services
 from app.database import get_db
 from app.exceptions import ConflictError, NotFoundError
+from app.llm import LlmClient
 from app.models import EmployeeDB, OrderDB, OrderStepDB, UserDB
 from app.schemas import (
     Employee,
@@ -16,6 +17,7 @@ from app.schemas import (
     Order,
     OrderResponse,
     OrderStepResponse,
+    OrderSummaryResponse,
     SortOrder,
     StepComplete,
     StepStart,
@@ -253,3 +255,25 @@ def get_me(current_user: Annotated[UserDB, Depends(get_current_user)]):
 @app.get("/users", response_model=list[UserResponse], tags=["users"])
 def get_all_users(db: DbSession, _: Annotated[UserDB, Depends(require_admin)]):
     return db.scalars(select(UserDB)).all()
+
+
+# TODO: set this endpoint for users after limiting requests
+@app.get(
+    "/orders/{order_id}/summary", response_model=OrderSummaryResponse, tags=["orders"]
+)
+def get_order_summary(
+    order_id: int,
+    db: DbSession,
+    _: Annotated[UserDB, Depends(require_admin)],
+    client: LlmClient,
+):
+    order = find_order_or_404(
+        order_id,
+        db,
+        options=[
+            selectinload(OrderDB.steps).selectinload(OrderStepDB.assigned_employee)
+        ],
+    )
+
+    summary = services.summarize_order(order, client)
+    return OrderSummaryResponse(order_id=order_id, summary=summary)

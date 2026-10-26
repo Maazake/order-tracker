@@ -5,10 +5,12 @@ from sqlalchemy.orm import sessionmaker
 
 from app.config import settings
 from app.database import Base, get_db
+from app.llm import get_llm_client
 from app.main import app
 from app.models import UserDB
 from app.schemas import UserRole
 from app.security import create_access_token, hash_password
+from tests.fakes import FakeBlock, FakeClient, FakeResponse
 
 
 @pytest.fixture
@@ -40,6 +42,19 @@ def client(db_session):
     yield TestClient(app)
 
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def fake_llm():
+    fake_block = FakeBlock(type="text", text="fake summary")
+    fake_response = FakeResponse(content=[fake_block], stop_reason="end_turn")
+    fake = FakeClient(fake_response)
+
+    app.dependency_overrides[get_llm_client] = lambda: fake
+
+    yield fake
+
+    app.dependency_overrides.pop(get_llm_client, None)
 
 
 @pytest.fixture(scope="session")

@@ -18,6 +18,7 @@ The app runs on a free plan and goes to sleep when unused, so the first request 
 - **PostgreSQL**, **SQLAlchemy 2.0** (typed `Mapped[]` models), **Alembic** migrations
 - **JWT** authentication (PyJWT), Argon2 password hashing (pwdlib)
 - **pydantic-settings** for configuration
+- **Anthropic Python SDK** (Claude Haiku 5.5) for the LLM feature, called directly without an LLM framework
 - **pytest** with FastAPI `TestClient`, **ruff**, **pre-commit**, **GitHub Actions**
 - **uv** for dependency management, **Docker** and Docker Compose for running the app
 - **Render** (app, built from the Dockerfile) and **Neon** (managed PostgreSQL) for hosting
@@ -32,6 +33,7 @@ The app runs on a free plan and goes to sleep when unused, so the first request 
 - **Listing orders** with pagination (`limit`, `offset`), filtering by step status and sorting by any column (ascending or descending). Steps and assigned employees are eager-loaded with `selectinload` to avoid N+1 queries.
 - **Roles.** `operator` and `admin`, see the permissions table below.
 - **Demo data.** The seed script loads 5 employees and 7 orders at different stages: fresh, in progress, in quality control, finished, and one overdue order stuck mid-production. Completed steps have realistic timestamps and technical notes.
+- **LLM order summary.** `GET /orders/{id}/summary` returns a short plain-English summary of an order for a production manager: progress, the step in progress and who is working on it, delays and step notes. Overdue orders and stalled work are mentioned first. Admin only for now (see Roadmap).
 
 ## Design decisions
 
@@ -44,6 +46,10 @@ The app runs on a free plan and goes to sleep when unused, so the first request 
 - **Services flush, callers commit.** A service never commits on its own, so several operations can run in one transaction. An endpoint commits after a single service call; the seed script commits once after building all demo data.
 - **Demo data is replayed, not inserted.** The seed script creates orders and moves them through their steps by calling the same services as the API, with timestamps moved into the past. Demo data can never be in a state the API would not allow. The script is idempotent and never drops tables; the schema is managed only by Alembic.
 - **Responses are filtered by `response_model`.** Fields like `hashed_password` can never leak into a response by accident.
+- **Code computes, the LLM describes.** For an order summary, Python computes the facts (completed steps, current step, days overdue, notes) and the model only turns them into text. Numbers computed in code are always correct and covered by plain unit tests; a model can miscount, and every token it spends on arithmetic costs money.
+- **The LLM is optional; the core app is not.** Unlike `SECRET_KEY`, `ANTHROPIC_API_KEY` is optional. Without it the app starts normally and only the summary endpoint returns 503, so a missing or revoked key can never take down order tracking.
+- **Tests never call the real model.** The Anthropic client is a FastAPI dependency, replaced in tests with a fake through `dependency_overrides`. The fake records its calls, so tests also check how many times the model was called, for example that a request for a non-existent order returns 404 without calling it. CI runs without an API key.
+- **Order data is wrapped in tags in the prompt.** Step notes are free text written by users, so the order is passed as JSON inside `<order>` tags and the system prompt tells the model to treat it as data. This reduces, but does not eliminate, the risk of prompt injection through notes.
 
 ## API overview
 
@@ -55,6 +61,7 @@ The app runs on a free plan and goes to sleep when unused, so the first request 
 | `GET` | `/users` | admin |
 | `GET` | `/orders` | logged in |
 | `GET` | `/orders/{id}` | logged in |
+| `GET` | `/orders/{id}/summary` | admin (temporarily, see Roadmap) |
 | `POST` | `/orders` | admin |
 | `DELETE` | `/orders/{id}` | admin |
 | `POST` | `/steps/{id}/start` | logged in |
@@ -143,7 +150,7 @@ The test suite covers the happy paths and error paths: 401 (missing, expired, fo
 
 ## Deployment
 
-- **Render** builds the image from the `Dockerfile` and runs it. Configuration (`DATABASE_URL`, `SECRET_KEY`, admin credentials) is set as environment variables in the Render dashboard, never in the repository or the image.
+- **Render** builds the image from the `Dockerfile` and runs it. Configuration (`DATABASE_URL`, `SECRET_KEY`, admin credentials) is set as environment variables in the Render dashboard, never in the repository or the image. Production uses its own Anthropic API key, separate from the development one, with a monthly spending limit set in the Anthropic console.
 - **Neon** hosts PostgreSQL in the same region as the app, so database round trips stay short.
 - **Migrations** run automatically when the container starts (`alembic upgrade head` before the server). If a migration fails, the server does not start.
 - **Continuous deployment:** a merge to `master` triggers a new deploy once the GitHub Actions checks pass.
@@ -154,7 +161,8 @@ The test suite covers the happy paths and error paths: 401 (missing, expired, fo
 ```
 app/
   main.py       # endpoints and exception handlers
-  services.py   # business logic: orders and step transitions
+  services.py   # business logic: orders, step transitions, order facts and LLM summary
+  llm.py        # Anthropic client as a FastAPI dependency (503 without an API key)
   exceptions.py # domain exceptions (NotFoundError, ConflictError)
   models.py     # SQLAlchemy models
   schemas.py    # Pydantic request/response schemas
@@ -163,11 +171,12 @@ app/
   database.py   # engine and session
   seed.py       # demo data, admin and demo accounts
 alembic/        # database migrations
-tests/          # API tests
+tests/          # API tests; fakes.py holds the fake LLM client
 Dockerfile      # API image: dependencies layer first, then code
 docker-compose.yml  # PostgreSQL + API
 ```
 
 ## Roadmap
 
+- [ ] Per-user rate limiting for LLM endpoints, then open `GET /orders/{id}/summary` to all logged-in users (admin only until then, to cap API costs)
 - [ ] LLM feature: answer natural-language questions about orders (read-only text-to-SQL)

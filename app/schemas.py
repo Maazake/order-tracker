@@ -108,3 +108,8 @@ class StepStart(BaseModel):
 
 class StepComplete(BaseModel):
     note: str | None = None
+
+
+class OrderSummaryResponse(BaseModel):
+    order_id: int
+    summary: str
