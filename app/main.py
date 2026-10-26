@@ -241,7 +241,9 @@ def get_all_users(db: DbSession, _: Annotated[UserDB, Depends(require_admin)]):
 
 
 # TODO: set this endpoint for users after limiting requests
-@app.get("/orders/{order_id}/summary", response_model=OrderSummaryResponse)
+@app.get(
+    "/orders/{order_id}/summary", response_model=OrderSummaryResponse, tags=["orders"]
+)
 def get_order_summary(
     order_id: int,
     db: DbSession,
