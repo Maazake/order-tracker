@@ -12,5 +12,4 @@ postgres_data/
 
 .coverage
 htmlcov/
-scratch_llm.py
-scratch_order.py
+scratch_*.py
