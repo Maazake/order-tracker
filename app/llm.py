@@ -24,3 +24,18 @@ def get_llm_client() -> anthropic.Anthropic:
 
 
 LlmClient = Annotated[anthropic.Anthropic, Depends(get_llm_client)]
+
+
+MODEL_PRICES = {"claude-haiku-5-5": {"in": 0.10, "out": 0.5}}
+
+
+def estimate_cost_usd(
+    model: str, input_tokens: int, output_tokens: int
+) -> float | None:
+    if not (prices := MODEL_PRICES.get(model)):
+        return None
+
+    input_cost = (input_tokens * prices["in"]) / 1_000_000
+    output_cost = (output_tokens * prices["out"]) / 1_000_000
+
+    return input_cost + output_cost

@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import UTC, datetime
 
 import anthropic
@@ -7,8 +8,11 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.exceptions import ConflictError, NotFoundError
+from app.llm import estimate_cost_usd
 from app.models import EmployeeDB, OrderDB, OrderStepDB
 from app.schemas import Order, ProcessStage, StepStatus
+
+logger = logging.getLogger(__name__)
 
 SUMMARY_SYSTEM_PROMPT = """You summarize production orders for a production manager.
 You will receive order data as JSON inside <order> tags.
@@ -34,6 +38,22 @@ def summarize_order(order: OrderDB, client: anthropic.Anthropic) -> str:
     )
 
     text = next((b.text for b in response.content if b.type == "text"), None)
+
+    cost = estimate_cost_usd(
+        response.model,
+        response.usage.input_tokens,
+        response.usage.output_tokens,
+    )
+    logger.info(
+        "llm_call order_id=%s model=%s input_tokens=%s output_tokens=%s cost_usd=%s stop_reason=%s",
+        order.id,
+        response.model,
+        response.usage.input_tokens,
+        response.usage.output_tokens,
+        cost,
+        response.stop_reason,
+    )
+
     if not text:
         raise RuntimeError(f"Reason for no text: {response.stop_reason}")
 

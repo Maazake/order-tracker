@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, status
@@ -36,6 +37,8 @@ from app.security import (
 )
 
 DbSession = Annotated[Session, Depends(get_db)]
+
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(
     title="Order Tracker API",
