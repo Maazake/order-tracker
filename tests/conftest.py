@@ -10,7 +10,7 @@ from app.main import app
 from app.models import UserDB
 from app.schemas import UserRole
 from app.security import create_access_token, hash_password
-from tests.fakes import FakeBlock, FakeClient, FakeResponse
+from tests.fakes import FakeBlock, FakeClient, FakeResponse, FakeUsage
 
 
 @pytest.fixture
@@ -47,7 +47,13 @@ def client(db_session):
 @pytest.fixture
 def fake_llm():
     fake_block = FakeBlock(type="text", text="fake summary")
-    fake_response = FakeResponse(content=[fake_block], stop_reason="end_turn")
+    fake_usage = FakeUsage(100, 50)
+    fake_response = FakeResponse(
+        content=[fake_block],
+        stop_reason="end_turn",
+        usage=fake_usage,
+        model="claude-haiku-10-10",
+    )
     fake = FakeClient(fake_response)
 
     app.dependency_overrides[get_llm_client] = lambda: fake

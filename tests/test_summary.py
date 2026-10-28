@@ -6,7 +6,7 @@ from app.config import settings
 from app.models import OrderDB, OrderStepDB
 from app.schemas import StepStatus
 from app.services import build_order_facts, summarize_order
-from tests.fakes import FakeBlock, FakeClient, FakeResponse
+from tests.fakes import FakeBlock, FakeClient, FakeResponse, FakeUsage
 
 NOW = datetime(2026, 12, 12, 9, 0, 0, 0, tzinfo=UTC)
 
@@ -20,7 +20,13 @@ def make_order():
 def test_summarize_order_returns_text_from_model():
     new_order = make_order()
     fake_block = FakeBlock(type="text", text="fake summary")
-    fake_response = FakeResponse(content=[fake_block], stop_reason="end_turn")
+    fake_usage = FakeUsage(100, 50)
+    fake_response = FakeResponse(
+        content=[fake_block],
+        stop_reason="end_turn",
+        usage=fake_usage,
+        model="claude-haiku-10-10",
+    )
     fake_client = FakeClient(fake_response)
 
     summary = summarize_order(new_order, fake_client)
@@ -31,7 +37,13 @@ def test_summarize_order_returns_text_from_model():
 def test_summarize_order_with_empty_text():
     new_order = make_order()
     fake_block = FakeBlock(type="text", text="")
-    fake_response = FakeResponse(content=[fake_block], stop_reason="end_turn")
+    fake_usage = FakeUsage(100, 50)
+    fake_response = FakeResponse(
+        content=[fake_block],
+        stop_reason="end_turn",
+        usage=fake_usage,
+        model="claude-haiku-10-10",
+    )
     fake_client = FakeClient(fake_response)
 
     with pytest.raises(RuntimeError):
@@ -41,7 +53,13 @@ def test_summarize_order_with_empty_text():
 def test_summarize_order_without_text_block():
     new_order = make_order()
     fake_block = FakeBlock(type="thinking", text="this is not a text block")
-    fake_response = FakeResponse(content=[fake_block], stop_reason="max_tokens")
+    fake_usage = FakeUsage(100, 50)
+    fake_response = FakeResponse(
+        content=[fake_block],
+        stop_reason="max_tokens",
+        usage=fake_usage,
+        model="claude-haiku-10-10",
+    )
     fake_client = FakeClient(fake_response)
 
     with pytest.raises(RuntimeError):
