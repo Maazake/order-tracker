@@ -8,9 +8,17 @@ class FakeBlock:
 
 
 @dataclass
+class FakeUsage:
+    input_tokens: int
+    output_tokens: int
+
+
+@dataclass
 class FakeResponse:
     content: list[FakeBlock]
     stop_reason: str
+    usage: FakeUsage
+    model: str
 
 
 class FakeMessages:
