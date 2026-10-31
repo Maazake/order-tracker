@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 
+import anthropic
+import httpx2
+
 
 @dataclass
 class FakeBlock:
@@ -34,3 +37,15 @@ class FakeMessages:
 class FakeClient:
     def __init__(self, response):
         self.messages = FakeMessages(response)
+
+
+class FailingMessages:
+    def create(self, **kwargs):
+        request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
+
+        raise anthropic.APITimeoutError(request=request)
+
+
+class FailingClient:
+    def __init__(self):
+        self.messages = FailingMessages()

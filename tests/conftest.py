@@ -10,7 +10,7 @@ from app.main import app
 from app.models import UserDB
 from app.schemas import UserRole
 from app.security import create_access_token, hash_password
-from tests.fakes import FakeBlock, FakeClient, FakeResponse, FakeUsage
+from tests.fakes import FailingClient, FakeBlock, FakeClient, FakeResponse, FakeUsage
 
 
 @pytest.fixture
@@ -55,6 +55,17 @@ def fake_llm():
         model="claude-haiku-10-10",
     )
     fake = FakeClient(fake_response)
+
+    app.dependency_overrides[get_llm_client] = lambda: fake
+
+    yield fake
+
+    app.dependency_overrides.pop(get_llm_client, None)
+
+
+@pytest.fixture
+def failing_llm():
+    fake = FailingClient()
 
     app.dependency_overrides[get_llm_client] = lambda: fake
 
