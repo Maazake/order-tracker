@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.exceptions import ConflictError, NotFoundError
+from app.exceptions import ConflictError, LlmUnavailableError, NotFoundError
 from app.llm import estimate_cost_usd
 from app.models import EmployeeDB, OrderDB, OrderStepDB
 from app.schemas import Order, ProcessStage, StepStatus
@@ -29,13 +29,21 @@ def summarize_order(order: OrderDB, client: anthropic.Anthropic) -> str:
     order_json = json.dumps(facts, ensure_ascii=False, indent=2)
     content = f"<order>\n{order_json}\n</order>"
 
-    response = client.messages.create(
-        model=settings.anthropic_model,
-        max_tokens=1000,
-        system=SUMMARY_SYSTEM_PROMPT,
-        output_config={"effort": "low"},
-        messages=[{"role": "user", "content": content}],
-    )
+    try:
+        response = client.messages.create(
+            model=settings.anthropic_model,
+            max_tokens=1000,
+            system=SUMMARY_SYSTEM_PROMPT,
+            output_config={"effort": "low"},
+            messages=[{"role": "user", "content": content}],
+        )
+    except anthropic.APIError as exc:
+        logger.warning(
+            "llm_error order_id=%s error_name=%s", order.id, type(exc).__name__
+        )
+        raise LlmUnavailableError(
+            "LLM is temporarily unavailable, try again later"
+        ) from exc
 
     text = next((b.text for b in response.content if b.type == "text"), None)
 

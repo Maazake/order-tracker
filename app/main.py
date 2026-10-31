@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app import services
 from app.database import get_db
-from app.exceptions import ConflictError, NotFoundError
+from app.exceptions import ConflictError, LlmUnavailableError, NotFoundError
 from app.llm import LlmClient
 from app.models import EmployeeDB, OrderDB, OrderStepDB, UserDB
 from app.schemas import (
@@ -55,6 +55,11 @@ async def handle_not_found(request: Request, exc: NotFoundError):
 @app.exception_handler(ConflictError)
 async def handle_conflict_error(request: Request, exc: ConflictError):
     return JSONResponse(status_code=409, content={"detail": str(exc)})
+
+
+@app.exception_handler(LlmUnavailableError)
+async def handle_llm_unavailable(request: Request, exc: LlmUnavailableError):
+    return JSONResponse(status_code=503, content={"detail": str(exc)})
 
 
 @app.get("/", include_in_schema=False)
