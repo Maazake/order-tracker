@@ -47,7 +47,23 @@ def test_summarize_order_with_empty_text():
     )
     fake_client = FakeClient(fake_response)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(LlmUnavailableError):
+        summarize_order(new_order, fake_client)
+
+
+def test_summarize_order_with_not_complete_response():
+    new_order = make_order()
+    fake_block = FakeBlock(type="text", text="Order 7 is overdue and  the")
+    fake_usage = FakeUsage(100, 50)
+    fake_response = FakeResponse(
+        content=[fake_block],
+        stop_reason="max_tokens",
+        usage=fake_usage,
+        model="claude-haiku-10-10",
+    )
+    fake_client = FakeClient(fake_response)
+
+    with pytest.raises(LlmUnavailableError):
         summarize_order(new_order, fake_client)
 
 
@@ -63,7 +79,7 @@ def test_summarize_order_without_text_block():
     )
     fake_client = FakeClient(fake_response)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(LlmUnavailableError):
         summarize_order(new_order, fake_client)
 
 

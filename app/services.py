@@ -23,6 +23,8 @@ If the order is overdue, mention it first.
 If the order is not finished and no step is in progress, mention it first.
 Write in plain language. Do not mention field names, JSON or null values."""
 
+UnavailableError = "LLM is temporarily unavailable, try again later"
+
 
 def summarize_order(order: OrderDB, client: anthropic.Anthropic) -> str:
     facts = build_order_facts(order)
@@ -41,11 +43,15 @@ def summarize_order(order: OrderDB, client: anthropic.Anthropic) -> str:
         logger.warning(
             "llm_error order_id=%s error_name=%s", order.id, type(exc).__name__
         )
-        raise LlmUnavailableError(
-            "LLM is temporarily unavailable, try again later"
-        ) from exc
+        raise LlmUnavailableError(UnavailableError) from exc
+
+    if response.stop_reason != "end_turn":
+        raise LlmUnavailableError(UnavailableError)
 
     text = next((b.text for b in response.content if b.type == "text"), None)
+
+    if not text:
+        raise LlmUnavailableError(UnavailableError)
 
     cost = estimate_cost_usd(
         response.model,
@@ -61,9 +67,6 @@ def summarize_order(order: OrderDB, client: anthropic.Anthropic) -> str:
         cost,
         response.stop_reason,
     )
-
-    if not text:
-        raise RuntimeError(f"Reason for no text: {response.stop_reason}")
 
     return text
 
