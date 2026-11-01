@@ -3,10 +3,11 @@ from datetime import UTC, date, datetime
 import pytest
 
 from app.config import settings
+from app.exceptions import LlmUnavailableError
 from app.models import OrderDB, OrderStepDB
 from app.schemas import StepStatus
 from app.services import build_order_facts, summarize_order
-from tests.fakes import FakeBlock, FakeClient, FakeResponse, FakeUsage
+from tests.fakes import FailingClient, FakeBlock, FakeClient, FakeResponse, FakeUsage
 
 NOW = datetime(2026, 12, 12, 9, 0, 0, 0, tzinfo=UTC)
 
@@ -46,7 +47,23 @@ def test_summarize_order_with_empty_text():
     )
     fake_client = FakeClient(fake_response)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(LlmUnavailableError):
+        summarize_order(new_order, fake_client)
+
+
+def test_summarize_order_with_not_complete_response():
+    new_order = make_order()
+    fake_block = FakeBlock(type="text", text="Order 7 is overdue and  the")
+    fake_usage = FakeUsage(100, 50)
+    fake_response = FakeResponse(
+        content=[fake_block],
+        stop_reason="max_tokens",
+        usage=fake_usage,
+        model="claude-haiku-10-10",
+    )
+    fake_client = FakeClient(fake_response)
+
+    with pytest.raises(LlmUnavailableError):
         summarize_order(new_order, fake_client)
 
 
@@ -62,7 +79,15 @@ def test_summarize_order_without_text_block():
     )
     fake_client = FakeClient(fake_response)
 
-    with pytest.raises(RuntimeError):
+    with pytest.raises(LlmUnavailableError):
+        summarize_order(new_order, fake_client)
+
+
+def test_summarize_order_api_error_raises_llm_unavailable():
+    new_order = make_order()
+    fake_client = FailingClient()
+
+    with pytest.raises(LlmUnavailableError):
         summarize_order(new_order, fake_client)
 
 
@@ -89,6 +114,14 @@ def test_summary_wrong_id_returns_404(admin_client, fake_llm):
     response = admin_client.get("/orders/999/summary")
     assert response.status_code == 404
     assert fake_llm.messages.call_counts == 0
+
+
+def test_failing_client_returns_503(admin_client, order, failing_llm):
+    response = admin_client.get(f"/orders/{order['id']}/summary")
+    assert response.status_code == 503
+    assert (
+        response.json()["detail"] == "LLM is temporarily unavailable, try again later"
+    )
 
 
 def test_no_key_returns_503(monkeypatch, admin_client, order):

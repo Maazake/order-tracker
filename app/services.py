@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.exceptions import ConflictError, NotFoundError
+from app.exceptions import ConflictError, LlmUnavailableError, NotFoundError
 from app.llm import estimate_cost_usd
 from app.models import EmployeeDB, OrderDB, OrderStepDB
 from app.schemas import Order, ProcessStage, StepStatus
@@ -23,21 +23,35 @@ If the order is overdue, mention it first.
 If the order is not finished and no step is in progress, mention it first.
 Write in plain language. Do not mention field names, JSON or null values."""
 
+UnavailableError = "LLM is temporarily unavailable, try again later"
+
 
 def summarize_order(order: OrderDB, client: anthropic.Anthropic) -> str:
     facts = build_order_facts(order)
     order_json = json.dumps(facts, ensure_ascii=False, indent=2)
     content = f"<order>\n{order_json}\n</order>"
 
-    response = client.messages.create(
-        model=settings.anthropic_model,
-        max_tokens=1000,
-        system=SUMMARY_SYSTEM_PROMPT,
-        output_config={"effort": "low"},
-        messages=[{"role": "user", "content": content}],
-    )
+    try:
+        response = client.messages.create(
+            model=settings.anthropic_model,
+            max_tokens=1000,
+            system=SUMMARY_SYSTEM_PROMPT,
+            output_config={"effort": "low"},
+            messages=[{"role": "user", "content": content}],
+        )
+    except anthropic.APIError as exc:
+        logger.warning(
+            "llm_error order_id=%s error_name=%s", order.id, type(exc).__name__
+        )
+        raise LlmUnavailableError(UnavailableError) from exc
+
+    if response.stop_reason != "end_turn":
+        raise LlmUnavailableError(UnavailableError)
 
     text = next((b.text for b in response.content if b.type == "text"), None)
+
+    if not text:
+        raise LlmUnavailableError(UnavailableError)
 
     cost = estimate_cost_usd(
         response.model,
@@ -53,9 +67,6 @@ def summarize_order(order: OrderDB, client: anthropic.Anthropic) -> str:
         cost,
         response.stop_reason,
     )
-
-    if not text:
-        raise RuntimeError(f"Reason for no text: {response.stop_reason}")
 
     return text
 

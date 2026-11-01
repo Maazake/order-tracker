@@ -4,3 +4,7 @@ class NotFoundError(Exception):
 
 class ConflictError(Exception):
     pass
+
+
+class LlmUnavailableError(Exception):
+    pass
