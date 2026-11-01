@@ -6,6 +6,9 @@ from fastapi import Depends, HTTPException, status
 from app.config import settings
 
 _client = None
+MODEL_PRICES = {"claude-haiku-5-5": {"in": 0.10, "out": 0.5}}
+LLM_TIMEOUT_SECONDS = 5
+LLM_MAX_RETRIES = 1
 
 
 def get_llm_client() -> anthropic.Anthropic:
@@ -19,14 +22,13 @@ def get_llm_client() -> anthropic.Anthropic:
 
     if _client is None:
         api_key = settings.anthropic_api_key.get_secret_value()
-        _client = anthropic.Anthropic(api_key=api_key)
+        _client = anthropic.Anthropic(
+            api_key=api_key, max_retries=LLM_MAX_RETRIES, timeout=LLM_TIMEOUT_SECONDS
+        )
     return _client
 
 
 LlmClient = Annotated[anthropic.Anthropic, Depends(get_llm_client)]
-
-
-MODEL_PRICES = {"claude-haiku-5-5": {"in": 0.10, "out": 0.5}}
 
 
 def estimate_cost_usd(
