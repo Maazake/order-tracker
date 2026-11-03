@@ -33,7 +33,7 @@ The app runs on a free plan and goes to sleep when unused, so the first request 
 - **Listing orders** with pagination (`limit`, `offset`), filtering by step status and sorting by any column (ascending or descending). Steps and assigned employees are eager-loaded with `selectinload` to avoid N+1 queries.
 - **Roles.** `operator` and `admin`, see the permissions table below.
 - **Demo data.** The seed script loads 5 employees and 7 orders at different stages: fresh, in progress, in quality control, finished, and one overdue order stuck mid-production. Completed steps have realistic timestamps and technical notes.
-- **LLM order summary.** `GET /orders/{id}/summary` returns a short plain-English summary of an order for a production manager: progress, the step in progress and who is working on it, delays and step notes. Overdue orders and stalled work are mentioned first. Admin only for now (see Roadmap).
+- **LLM order summary.** `GET /orders/{id}/summary` returns a short plain-English summary of an order for a production manager: progress, the step in progress and who is working on it, delays and step notes. Overdue orders and stalled work are mentioned first. Available to logged-in users, up to 20 summaries per user per day.
 
 ## Design decisions
 
@@ -43,13 +43,15 @@ The app runs on a free plan and goes to sleep when unused, so the first request 
 - **Validation lives in schemas.** Input shape is validated by Pydantic (422). Endpoints only handle rules that need the database: duplicate username (409), invalid step transition (409).
 - **Fail-fast configuration.** Secrets have no default values. If `SECRET_KEY` is missing or shorter than 32 characters, the application refuses to start and reports every missing variable at once, instead of failing at the first login.
 - **Business logic lives in a service layer.** `app/services.py` contains the rules (create an order with its steps, start and complete a step) and knows nothing about HTTP. It raises domain exceptions (`NotFoundError`, `ConflictError`), which exception handlers in `main.py` map to 404 and 409. Endpoints only handle HTTP: authentication, request parsing, committing the transaction.
-- **Services flush, callers commit.** A service never commits on its own, so several operations can run in one transaction. An endpoint commits after a single service call; the seed script commits once after building all demo data.
+- **Services flush, callers commit.** A service never commits on its own, so several operations can run in one transaction. An endpoint commits after a single service call; the seed script commits once after building all demo data. The one exception is the LLM usage counter, which commits immediately so that a used attempt is saved before the model is called.
 - **Demo data is replayed, not inserted.** The seed script creates orders and moves them through their steps by calling the same services as the API, with timestamps moved into the past. Demo data can never be in a state the API would not allow. The script is idempotent and never drops tables; the schema is managed only by Alembic.
 - **Responses are filtered by `response_model`.** Fields like `hashed_password` can never leak into a response by accident.
 - **Code computes, the LLM describes.** For an order summary, Python computes the facts (completed steps, current step, days overdue, notes) and the model only turns them into text. Numbers computed in code are always correct and covered by plain unit tests; a model can miscount, and every token it spends on arithmetic costs money.
 - **The LLM is optional; the core app is not.** Unlike `SECRET_KEY`, `ANTHROPIC_API_KEY` is optional. Without it the app starts normally and only the summary endpoint returns 503, so a missing or revoked key can never take down order tracking.
 - **Tests never call the real model.** The Anthropic client is a FastAPI dependency, replaced in tests with a fake through `dependency_overrides`. The fake records its calls, so tests also check how many times the model was called, for example that a request for a non-existent order returns 404 without calling it. CI runs without an API key.
 - **Order data is wrapped in tags in the prompt.** Step notes are free text written by users, so the order is passed as JSON inside `<order>` tags and the system prompt tells the model to treat it as data. This reduces, but does not eliminate, the risk of prompt injection through notes.
+- **LLM failures do not look like bugs.** API errors and responses that did not finish normally (`stop_reason` other than `end_turn`, such as a cut-off text or a refusal) return 503 with a generic message; details go to the logs. A 5-second timeout and one retry keep the wait to about 10 seconds. Every model response is logged with its tokens and estimated cost, never with the order content.
+- **The daily LLM limit is one SQL statement.** The usage counter lives in the database, so it survives restarts and deployments. Checking and raising it is a single `INSERT ... ON CONFLICT DO UPDATE`, so parallel requests cannot pass the limit. It is raised before the model is called, which means a failed call uses up an attempt, but a blocked one never costs money. The limit is per account, so it does not stop someone registering many accounts; the spending limit in the Anthropic console is the final cap.
 
 ## API overview
 
@@ -61,7 +63,7 @@ The app runs on a free plan and goes to sleep when unused, so the first request 
 | `GET` | `/users` | admin |
 | `GET` | `/orders` | logged in |
 | `GET` | `/orders/{id}` | logged in |
-| `GET` | `/orders/{id}/summary` | admin (temporarily, see Roadmap) |
+| `GET` | `/orders/{id}/summary` | logged in (20 per day) |
 | `POST` | `/orders` | admin |
 | `DELETE` | `/orders/{id}` | admin |
 | `POST` | `/steps/{id}/start` | logged in |
@@ -178,5 +180,4 @@ docker-compose.yml  # PostgreSQL + API
 
 ## Roadmap
 
-- [ ] Per-user rate limiting for LLM endpoints, then open `GET /orders/{id}/summary` to all logged-in users (admin only until then, to cap API costs)
 - [ ] LLM feature: answer natural-language questions about orders (read-only text-to-SQL)
