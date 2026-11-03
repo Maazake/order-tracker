@@ -6,8 +6,15 @@ from app import services
 from app.config import settings
 from app.exceptions import LlmUnavailableError
 from app.models import OrderDB, OrderStepDB
-from app.schemas import StepStatus
-from tests.fakes import FailingClient, FakeBlock, FakeClient, FakeResponse, FakeUsage
+from app.schemas import OrderDraft, StepStatus
+from tests.fakes import (
+    FailingClient,
+    FakeBlock,
+    FakeClient,
+    FakeResponse,
+    FakeUsage,
+    TruncatedMessages,
+)
 
 NOW = datetime(2026, 12, 12, 9, 0, 0, 0, tzinfo=UTC)
 
@@ -83,12 +90,65 @@ def test_summarize_order_without_text_block():
         services.summarize_order(new_order, fake_client)
 
 
+def test_extract_order_draft_returns_parsed_output():
+    draft = OrderDraft(
+        element_name="VALVE", count=50, planned_completion_date=date(2026, 11, 13)
+    )
+    fake_usage = FakeUsage(100, 50)
+    fake_response = FakeResponse(
+        content=[],
+        stop_reason="end_turn",
+        usage=fake_usage,
+        model="claude-haiku-10-10",
+        parsed_output=draft,
+    )
+    fake_client = FakeClient(fake_response)
+    e_mail = "We need 50 pieces on the next friday"
+
+    result = services.extract_order_draft(email_text=e_mail, client=fake_client)
+
+    assert result == draft
+
+
+def test_none_parsed_output_returns_llm_unavailable():
+    fake_usage = FakeUsage(100, 50)
+    fake_response = FakeResponse(
+        content=[],
+        stop_reason="end_turn",
+        usage=fake_usage,
+        model="claude-haiku-10-10",
+        parsed_output=None,
+    )
+    fake_client = FakeClient(fake_response)
+    e_mail = "We need 50 pieces on the next friday"
+
+    with pytest.raises(LlmUnavailableError):
+        services.extract_order_draft(e_mail, fake_client)
+
+
 def test_summarize_order_api_error_raises_llm_unavailable():
     new_order = make_order()
     fake_client = FailingClient()
 
     with pytest.raises(LlmUnavailableError):
         services.summarize_order(new_order, fake_client)
+
+
+def test_operator_gets_403_on_endpoint_from_text(operator_client, fake_llm):
+    response = operator_client.post(
+        "/orders/from-text", json={"text": "some e-mail here"}
+    )
+
+    assert response.status_code == 403
+    assert fake_llm.messages.call_counts == 0
+
+
+def test_extract_order_draft_truncated_json_raises_llm_unavailable():
+    fake_client = FailingClient()
+    fake_client.messages = TruncatedMessages()
+
+    with pytest.raises(LlmUnavailableError):
+        services.extract_order_draft("asdasd", fake_client)
 
 
 def test_admin_get_200_and_summary(admin_client, order, fake_llm):

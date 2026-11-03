@@ -3,6 +3,8 @@ from dataclasses import dataclass
 import anthropic
 import httpx2
 
+from app.schemas import OrderDraft
+
 
 @dataclass
 class FakeBlock:
@@ -22,6 +24,7 @@ class FakeResponse:
     stop_reason: str
     usage: FakeUsage
     model: str
+    parsed_output: str = None
 
 
 class FakeMessages:
@@ -30,6 +33,10 @@ class FakeMessages:
         self.call_counts = 0
 
     def create(self, **kwargs):
+        self.call_counts += 1
+        return self.response
+
+    def parse(self, **kwargs):
         self.call_counts += 1
         return self.response
 
@@ -49,3 +56,8 @@ class FailingMessages:
 class FailingClient:
     def __init__(self):
         self.messages = FailingMessages()
+
+
+class TruncatedMessages:
+    def parse(self, **kwargs):
+        return OrderDraft.model_validate_json('{"element_name": "zaw')
