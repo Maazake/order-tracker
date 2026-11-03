@@ -8,3 +8,7 @@ class ConflictError(Exception):
 
 class LlmUnavailableError(Exception):
     pass
+
+
+class LlmLimitExceededError(Exception):
+    pass

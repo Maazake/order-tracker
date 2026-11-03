@@ -4,12 +4,18 @@ from datetime import UTC, datetime
 
 import anthropic
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from app.config import settings
-from app.exceptions import ConflictError, LlmUnavailableError, NotFoundError
+from app.exceptions import (
+    ConflictError,
+    LlmLimitExceededError,
+    LlmUnavailableError,
+    NotFoundError,
+)
 from app.llm import estimate_cost_usd
-from app.models import EmployeeDB, OrderDB, OrderStepDB
+from app.models import EmployeeDB, LlmUsageDB, OrderDB, OrderStepDB
 from app.schemas import Order, ProcessStage, StepStatus
 
 logger = logging.getLogger(__name__)
@@ -24,6 +30,7 @@ If the order is not finished and no step is in progress, mention it first.
 Write in plain language. Do not mention field names, JSON or null values."""
 
 UnavailableError = "LLM is temporarily unavailable, try again later"
+SUMMARY_DAILY_LIMIT = 20
 
 
 def summarize_order(order: OrderDB, client: anthropic.Anthropic) -> str:
@@ -181,3 +188,22 @@ def build_order_facts(order: OrderDB, now: datetime | None = None) -> dict:
         "notes": notes,
         "is_finished": is_finished,
     }
+
+
+def consume_summary_quota(db: Session, user_id: int) -> None:
+    today = datetime.now(UTC).date()
+    stmt = (
+        insert(LlmUsageDB)
+        .values(user_id=user_id, day=today, counter=1)
+        .on_conflict_do_update(
+            constraint="uq_llm_usage_user_day",
+            set_={"counter": LlmUsageDB.counter + 1},
+            where=LlmUsageDB.counter < SUMMARY_DAILY_LIMIT,
+        )
+        .returning(LlmUsageDB.counter)
+    )
+
+    used = db.scalar(stmt)
+    db.commit()
+    if used is None:
+        raise LlmLimitExceededError("Exceeded daily limit, please try again tomorrow")
