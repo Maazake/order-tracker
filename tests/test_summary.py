@@ -2,11 +2,11 @@ from datetime import UTC, date, datetime
 
 import pytest
 
+from app import services
 from app.config import settings
 from app.exceptions import LlmUnavailableError
 from app.models import OrderDB, OrderStepDB
 from app.schemas import StepStatus
-from app.services import build_order_facts, summarize_order
 from tests.fakes import FailingClient, FakeBlock, FakeClient, FakeResponse, FakeUsage
 
 NOW = datetime(2026, 12, 12, 9, 0, 0, 0, tzinfo=UTC)
@@ -30,7 +30,7 @@ def test_summarize_order_returns_text_from_model():
     )
     fake_client = FakeClient(fake_response)
 
-    summary = summarize_order(new_order, fake_client)
+    summary = services.summarize_order(new_order, fake_client)
 
     assert summary == "fake summary"
 
@@ -48,7 +48,7 @@ def test_summarize_order_with_empty_text():
     fake_client = FakeClient(fake_response)
 
     with pytest.raises(LlmUnavailableError):
-        summarize_order(new_order, fake_client)
+        services.summarize_order(new_order, fake_client)
 
 
 def test_summarize_order_with_not_complete_response():
@@ -64,7 +64,7 @@ def test_summarize_order_with_not_complete_response():
     fake_client = FakeClient(fake_response)
 
     with pytest.raises(LlmUnavailableError):
-        summarize_order(new_order, fake_client)
+        services.summarize_order(new_order, fake_client)
 
 
 def test_summarize_order_without_text_block():
@@ -80,7 +80,7 @@ def test_summarize_order_without_text_block():
     fake_client = FakeClient(fake_response)
 
     with pytest.raises(LlmUnavailableError):
-        summarize_order(new_order, fake_client)
+        services.summarize_order(new_order, fake_client)
 
 
 def test_summarize_order_api_error_raises_llm_unavailable():
@@ -88,7 +88,7 @@ def test_summarize_order_api_error_raises_llm_unavailable():
     fake_client = FailingClient()
 
     with pytest.raises(LlmUnavailableError):
-        summarize_order(new_order, fake_client)
+        services.summarize_order(new_order, fake_client)
 
 
 def test_admin_get_200_and_summary(admin_client, order, fake_llm):
@@ -98,10 +98,10 @@ def test_admin_get_200_and_summary(admin_client, order, fake_llm):
     assert fake_llm.messages.call_counts == 1
 
 
-def test_operator_client_get_403_on_summary(operator_client, order, fake_llm):
+def test_operator_client_get_200_on_summary(operator_client, order, fake_llm):
     response = operator_client.get(f"/orders/{order['id']}/summary")
-    assert response.status_code == 403
-    assert fake_llm.messages.call_counts == 0
+    assert response.status_code == 200
+    assert fake_llm.messages.call_counts == 1
 
 
 def test_not_logged_in_user_asks_for_summary(client, order, fake_llm):
@@ -114,6 +114,17 @@ def test_summary_wrong_id_returns_404(admin_client, fake_llm):
     response = admin_client.get("/orders/999/summary")
     assert response.status_code == 404
     assert fake_llm.messages.call_counts == 0
+
+
+def test_exceeding_llm_limits(operator_client, order, monkeypatch, fake_llm):
+    monkeypatch.setattr(services, "SUMMARY_DAILY_LIMIT", 1)
+    response = operator_client.get(f"/orders/{order['id']}/summary")
+    assert response.status_code == 200
+    assert fake_llm.messages.call_counts == 1
+
+    response = operator_client.get(f"/orders/{order['id']}/summary")
+    assert response.status_code == 429
+    assert fake_llm.messages.call_counts == 1
 
 
 def test_failing_client_returns_503(admin_client, order, failing_llm):
@@ -138,7 +149,7 @@ def test_not_started_order():
         OrderStepDB(step_name="turning", step_order=2, status=StepStatus.PENDING),
     ]
 
-    facts = build_order_facts(new_order, now=NOW)
+    facts = services.build_order_facts(new_order, now=NOW)
 
     assert facts["completed_steps"] == 0
     assert facts["total_steps"] == 2
@@ -155,7 +166,7 @@ def test_one_step_in_progress_without_employee():
         OrderStepDB(step_name="milling", step_order=3, status=StepStatus.PENDING),
     ]
 
-    facts = build_order_facts(new_order, now=NOW)
+    facts = services.build_order_facts(new_order, now=NOW)
     assert facts["total_steps"] == 3
     assert facts["current_step"]["step_name"] == "turning"
     assert facts["current_step"]["employee"] is None
@@ -171,7 +182,7 @@ def test_delayed_order_not_finished():
         OrderStepDB(step_name="turning", step_order=2, status=StepStatus.PENDING),
     ]
 
-    facts = build_order_facts(new_order, now=NOW)
+    facts = services.build_order_facts(new_order, now=NOW)
 
     assert facts["completed_steps"] == 1
     assert facts["days_overdue"] == 2
@@ -185,7 +196,7 @@ def test_order_is_finished():
         OrderStepDB(step_name="turning", step_order=2, status=StepStatus.DONE),
     ]
 
-    facts = build_order_facts(new_order, now=NOW)
+    facts = services.build_order_facts(new_order, now=NOW)
 
     assert facts["completed_steps"] == facts["total_steps"]
     assert facts["days_overdue"] == 0
@@ -210,7 +221,7 @@ def test_orders_with_notes():
         OrderStepDB(step_name="milling", step_order=3, status=StepStatus.PENDING),
     ]
 
-    facts = build_order_facts(new_order, now=NOW)
+    facts = services.build_order_facts(new_order, now=NOW)
 
     assert len(facts["notes"]) == 2
     assert facts["notes"][0] == "cutting: had problems but everythings allright"

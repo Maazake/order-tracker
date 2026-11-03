@@ -66,3 +66,13 @@ class OrderStepDB(Base):
 
     order: Mapped[OrderDB] = relationship(back_populates="steps")
     assigned_employee: Mapped[EmployeeDB | None] = relationship(back_populates="steps")
+
+
+class LlmUsageDB(Base):
+    __tablename__ = "llm_usage"
+    __table_args__ = (UniqueConstraint("user_id", "day", name="uq_llm_usage_user_day"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    day: Mapped[date]
+    counter: Mapped[int]
