@@ -22,7 +22,7 @@ from app.schemas import (
     EmployeeResponse,
     Order,
     OrderDraft,
-    OrderFromTextReuqest,
+    OrderFromTextRequest,
     OrderResponse,
     OrderStepResponse,
     OrderSummaryResponse,
@@ -302,7 +302,7 @@ def get_order_summary(
 
 @app.post("/orders/from-text", response_model=OrderDraft, tags=["orders"])
 def order_from_text(
-    body: OrderFromTextReuqest,
+    body: OrderFromTextRequest,
     _: Annotated[UserDB, Depends(require_admin)],
     client: LlmClient,
 ):

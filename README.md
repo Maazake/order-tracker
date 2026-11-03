@@ -34,6 +34,7 @@ The app runs on a free plan and goes to sleep when unused, so the first request 
 - **Roles.** `operator` and `admin`, see the permissions table below.
 - **Demo data.** The seed script loads 5 employees and 7 orders at different stages: fresh, in progress, in quality control, finished, and one overdue order stuck mid-production. Completed steps have realistic timestamps and technical notes.
 - **LLM order summary.** `GET /orders/{id}/summary` returns a short plain-English summary of an order for a production manager: progress, the step in progress and who is working on it, delays and step notes. Overdue orders and stalled work are mentioned first. Available to logged-in users, up to 20 summaries per user per day.
+- **Order draft from an email.** `POST /orders/from-text` turns the text of an email into a draft order using structured outputs. Nothing is saved: an admin reviews the draft and creates the order with `POST /orders`.
 
 ## Design decisions
 
@@ -50,6 +51,7 @@ The app runs on a free plan and goes to sleep when unused, so the first request 
 - **The LLM is optional; the core app is not.** Unlike `SECRET_KEY`, `ANTHROPIC_API_KEY` is optional. Without it the app starts normally and only the summary endpoint returns 503, so a missing or revoked key can never take down order tracking.
 - **Tests never call the real model.** The Anthropic client is a FastAPI dependency, replaced in tests with a fake through `dependency_overrides`. The fake records its calls, so tests also check how many times the model was called, for example that a request for a non-existent order returns 404 without calling it. CI runs without an API key.
 - **Order data is wrapped in tags in the prompt.** Step notes are free text written by users, so the order is passed as JSON inside `<order>` tags and the system prompt tells the model to treat it as data. This reduces, but does not eliminate, the risk of prompt injection through notes.
+- **The model proposes, a human approves.** `POST /orders/from-text` only returns a draft and has no database access, so the model cannot write anything. Information missing from the email is returned as `null` instead of a default value, so a default can never pass as something the customer asked for. The email is untrusted input: it is wrapped in `<email>` tags and treated as data, and the admin review is the final safeguard against prompt injection.
 - **LLM failures do not look like bugs.** API errors and responses that did not finish normally (`stop_reason` other than `end_turn`, such as a cut-off text or a refusal) return 503 with a generic message; details go to the logs. A 5-second timeout and one retry keep the wait to about 10 seconds. Every model response is logged with its tokens and estimated cost, never with the order content.
 - **The daily LLM limit is one SQL statement.** The usage counter lives in the database, so it survives restarts and deployments. Checking and raising it is a single `INSERT ... ON CONFLICT DO UPDATE`, so parallel requests cannot pass the limit. It is raised before the model is called, which means a failed call uses up an attempt, but a blocked one never costs money. The limit is per account, so it does not stop someone registering many accounts; the spending limit in the Anthropic console is the final cap.
 
@@ -65,6 +67,7 @@ The app runs on a free plan and goes to sleep when unused, so the first request 
 | `GET` | `/orders/{id}` | logged in |
 | `GET` | `/orders/{id}/summary` | logged in (20 per day) |
 | `POST` | `/orders` | admin |
+| `POST` | `/orders/from-text` | admin |
 | `DELETE` | `/orders/{id}` | admin |
 | `POST` | `/steps/{id}/start` | logged in |
 | `POST` | `/steps/{id}/complete` | logged in |

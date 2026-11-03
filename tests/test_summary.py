@@ -143,6 +143,13 @@ def test_operator_gets_403_on_endpoint_from_text(operator_client, fake_llm):
     assert fake_llm.messages.call_counts == 0
 
 
+def test_api_failure_returns_llm_unavailable():
+    fake_client = FailingClient()
+
+    with pytest.raises(LlmUnavailableError):
+        services.extract_order_draft("asdasd", fake_client)
+
+
 def test_extract_order_draft_truncated_json_raises_llm_unavailable():
     fake_client = FailingClient()
     fake_client.messages = TruncatedMessages()

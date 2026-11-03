@@ -30,7 +30,7 @@ If the order is overdue, mention it first.
 If the order is not finished and no step is in progress, mention it first.
 Write in plain language. Do not mention field names, JSON or null values."""
 
-UnavailableError = "LLM is temporarily unavailable, try again later"
+LLM_UNAVAILABLE_ERROR = "LLM is temporarily unavailable, try again later"
 SUMMARY_DAILY_LIMIT = 20
 
 
@@ -47,19 +47,19 @@ def summarize_order(order: OrderDB, client: anthropic.Anthropic) -> str:
             output_config={"effort": "low"},
             messages=[{"role": "user", "content": content}],
         )
-    except (anthropic.APIError, ValidationError) as exc:
+    except anthropic.APIError as exc:
         logger.warning(
             "llm_error order_id=%s error_name=%s", order.id, type(exc).__name__
         )
-        raise LlmUnavailableError(UnavailableError) from exc
+        raise LlmUnavailableError(LLM_UNAVAILABLE_ERROR) from exc
 
     if response.stop_reason != "end_turn":
-        raise LlmUnavailableError(UnavailableError)
+        raise LlmUnavailableError(LLM_UNAVAILABLE_ERROR)
 
     text = next((b.text for b in response.content if b.type == "text"), None)
 
     if not text:
-        raise LlmUnavailableError(UnavailableError)
+        raise LlmUnavailableError(LLM_UNAVAILABLE_ERROR)
 
     cost = estimate_cost_usd(
         response.model,
@@ -232,7 +232,7 @@ def extract_order_draft(email_text: str, client: anthropic.Anthropic) -> OrderDr
         )
     except (anthropic.APIError, ValidationError) as exc:
         logger.warning("llm_error error_name=%s", type(exc).__name__)
-        raise LlmUnavailableError(UnavailableError) from exc
+        raise LlmUnavailableError(LLM_UNAVAILABLE_ERROR) from exc
 
     cost = estimate_cost_usd(
         response.model,
@@ -250,9 +250,9 @@ def extract_order_draft(email_text: str, client: anthropic.Anthropic) -> OrderDr
     )
 
     if response.stop_reason != "end_turn":
-        raise LlmUnavailableError(UnavailableError)
+        raise LlmUnavailableError(LLM_UNAVAILABLE_ERROR)
 
     if response.parsed_output is None:
-        raise LlmUnavailableError(UnavailableError)
+        raise LlmUnavailableError(LLM_UNAVAILABLE_ERROR)
 
     return response.parsed_output

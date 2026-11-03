@@ -24,7 +24,7 @@ class FakeResponse:
     stop_reason: str
     usage: FakeUsage
     model: str
-    parsed_output: str = None
+    parsed_output: OrderDraft | None = None
 
 
 class FakeMessages:
@@ -48,6 +48,11 @@ class FakeClient:
 
 class FailingMessages:
     def create(self, **kwargs):
+        request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
+
+        raise anthropic.APITimeoutError(request=request)
+
+    def parse(self, **kwargs):
         request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
 
         raise anthropic.APITimeoutError(request=request)

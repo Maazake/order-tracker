@@ -121,5 +121,5 @@ class OrderDraft(BaseModel):
     planned_completion_date: date | None
 
 
-class OrderFromTextReuqest(BaseModel):
-    text: str = Field(max_length=1000)
+class OrderFromTextRequest(BaseModel):
+    text: str = Field(max_length=3000)
