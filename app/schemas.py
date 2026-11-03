@@ -113,3 +113,13 @@ class StepComplete(BaseModel):
 class OrderSummaryResponse(BaseModel):
     order_id: int
     summary: str
+
+
+class OrderDraft(BaseModel):
+    element_name: str | None
+    count: int | None
+    planned_completion_date: date | None
+
+
+class OrderFromTextRequest(BaseModel):
+    text: str = Field(max_length=3000)

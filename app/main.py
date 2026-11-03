@@ -21,6 +21,8 @@ from app.schemas import (
     Employee,
     EmployeeResponse,
     Order,
+    OrderDraft,
+    OrderFromTextRequest,
     OrderResponse,
     OrderStepResponse,
     OrderSummaryResponse,
@@ -296,3 +298,12 @@ def get_order_summary(
 
     summary = services.summarize_order(order, client)
     return OrderSummaryResponse(order_id=order_id, summary=summary)
+
+
+@app.post("/orders/from-text", response_model=OrderDraft, tags=["orders"])
+def order_from_text(
+    body: OrderFromTextRequest,
+    _: Annotated[UserDB, Depends(require_admin)],
+    client: LlmClient,
+):
+    return services.extract_order_draft(body.text, client)
