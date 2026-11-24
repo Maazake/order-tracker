@@ -1,0 +1,877 @@
+[
+  {
+    "stage": "cutting",
+    "text": "Bar stock 40 mm diameter cut to 120 mm length with 1 mm allowance per side.",
+    "category": "routine"
+  },
+  {
+    "stage": "cutting",
+    "text": "Material cut with 2 mm allowance.",
+    "category": "routine"
+  },
+  {
+    "stage": "cutting",
+    "text": "12 blanks sawn from 6 m bar, average cut time 45 s per piece.",
+    "category": "routine"
+  },
+  {
+    "stage": "cutting",
+    "text": "Billet cut to 85 mm length and deburred with file on both ends.",
+    "category": "routine"
+  },
+  {
+    "stage": "cutting",
+    "text": "Round bar 50 mm cut to 200 mm with face flatness within 0.2 mm.",
+    "category": "routine"
+  },
+  {
+    "stage": "cutting",
+    "text": "Aluminum plate 300 x 150 mm sheared into 4 pieces of 75 x 150 mm.",
+    "category": "routine"
+  },
+  {
+    "stage": "cutting",
+    "text": "Cutting blade fed at 0.05 mm per tooth with no vibration observed.",
+    "category": "routine"
+  },
+  {
+    "stage": "cutting",
+    "text": "20 pcs cut to 60 mm length, batch completed in 35 minutes.",
+    "category": "routine"
+  },
+  {
+    "stage": "cutting",
+    "text": "Stainless bar 25 mm cut with coolant flow set to 8 l/min.",
+    "category": "routine"
+  },
+  {
+    "stage": "cutting",
+    "text": "Square tube 40 x 40 mm cut to 350 mm with ends squared to 90 degrees.",
+    "category": "routine"
+  },
+  {
+    "stage": "cutting",
+    "text": "Steel bars 30 mm cut to 150 mm with length tolerance of +/-0.3 mm.",
+    "category": "routine"
+  },
+  {
+    "stage": "cutting",
+    "text": "Brass rod 16 mm cut into 45 mm slugs, labeled and stacked.",
+    "category": "routine"
+  },
+  {
+    "stage": "cutting",
+    "text": "Cut sequence completed with 3 mm stock margin left on each blank.",
+    "category": "routine"
+  },
+  {
+    "stage": "cutting",
+    "text": "3 pcs rejected: cut length 152 mm instead of 150 mm, recut from remaining stock.",
+    "category": "defect"
+  },
+  {
+    "stage": "cutting",
+    "text": "Blank edge chipped 1.5 mm deep, scrapped and replaced with a new piece.",
+    "category": "defect"
+  },
+  {
+    "stage": "cutting",
+    "text": "Cut face out of squareness by 0.4 degrees on 5 pcs, vise reset and parts recut.",
+    "category": "defect"
+  },
+  {
+    "stage": "cutting",
+    "text": "Bar cut 4 mm short of drawing length on 2 pcs, marked for scrap.",
+    "category": "defect"
+  },
+  {
+    "stage": "cutting",
+    "text": "Band saw blade broke after 180 cuts and was replaced with a new 27 tpi blade.",
+    "category": "machine"
+  },
+  {
+    "stage": "cutting",
+    "text": "Saw coolant pump stopped for 15 minutes and restarted after filter cleaning.",
+    "category": "machine"
+  },
+  {
+    "stage": "cutting",
+    "text": "Hydraulic feed pressure dropped to 40 bar, reducing cut rate by 30 percent.",
+    "category": "machine"
+  },
+  {
+    "stage": "cutting",
+    "text": "Circular saw guard sensor faulted twice, reset and cutting resumed.",
+    "category": "machine"
+  },
+  {
+    "stage": "cutting",
+    "text": "Bar stock 42 mm showed 0.8 mm ovality, so 6 pcs were set aside.",
+    "category": "material"
+  },
+  {
+    "stage": "cutting",
+    "text": "Aluminum billet had an 8 mm long internal crack at the cut end, so 2 pcs were scrapped.",
+    "category": "material"
+  },
+  {
+    "stage": "cutting",
+    "text": "Steel bar bent 3 mm over 1 m length and was straightened before cutting.",
+    "category": "material"
+  },
+  {
+    "stage": "cutting",
+    "text": "Incoming 20 mm rods had 0.3 mm deep scale, so cuts were taken from the clean section.",
+    "category": "material"
+  },
+  {
+    "stage": "turning",
+    "text": "Shaft \u00d840 h9 turned to \u00d838.5 mm in two passes with Ra 1.6 finish achieved.",
+    "category": "routine"
+  },
+  {
+    "stage": "turning",
+    "text": "Rough turned OD to 42 mm, leaving 1.5 mm stock for the finishing pass.",
+    "category": "routine"
+  },
+  {
+    "stage": "turning",
+    "text": "Face cut at 0.8 mm depth per pass, total length held at 120 mm.",
+    "category": "routine"
+  },
+  {
+    "stage": "turning",
+    "text": "Center drilled \u00d83.15 mm on both ends before turning between centers.",
+    "category": "routine"
+  },
+  {
+    "stage": "turning",
+    "text": "Chamfer 1 x 45\u00b0 applied to both ends of the bushing.",
+    "category": "routine"
+  },
+  {
+    "stage": "turning",
+    "text": "Groove 4 mm wide turned to 2.5 mm depth at 1200 rpm.",
+    "category": "routine"
+  },
+  {
+    "stage": "turning",
+    "text": "Spindle set to 850 rpm with 0.2 mm/rev feed for the finish pass.",
+    "category": "routine"
+  },
+  {
+    "stage": "turning",
+    "text": "Bore \u00d820 H7 finished to 20.02 mm, within tolerance.",
+    "category": "routine"
+  },
+  {
+    "stage": "turning",
+    "text": "Batch of 48 parts turned at 60 pcs per hour without interruption.",
+    "category": "routine"
+  },
+  {
+    "stage": "turning",
+    "text": "Thread M16x1.5 cut in 6 passes, go gauge fits first time.",
+    "category": "routine"
+  },
+  {
+    "stage": "turning",
+    "text": "150 mm long shaft supported by tailstock, runout held at 0.02 mm.",
+    "category": "routine"
+  },
+  {
+    "stage": "turning",
+    "text": "Coolant flow set to 8 L/min during roughing.",
+    "category": "routine"
+  },
+  {
+    "stage": "turning",
+    "text": "R2 radius turned on shoulder with form tool and checked with template.",
+    "category": "routine"
+  },
+  {
+    "stage": "turning",
+    "text": "2 pcs rejected: journal \u00d830 measured 29.92 mm, below tolerance, scrapped.",
+    "category": "defect"
+  },
+  {
+    "stage": "turning",
+    "text": "Shoulder turned 0.4 mm short at 25 mm length, reworked after facing back.",
+    "category": "defect"
+  },
+  {
+    "stage": "turning",
+    "text": "Taper measured 0.06 mm over 100 mm, exceeding the 0.02 mm limit, part reworked.",
+    "category": "defect"
+  },
+  {
+    "stage": "turning",
+    "text": "Sealing diameter came out at Ra 3.2 instead of Ra 1.6, repolished to spec.",
+    "category": "defect"
+  },
+  {
+    "stage": "turning",
+    "text": "CNMG insert chipped after 35 min of cutting, replaced with a new insert.",
+    "category": "machine"
+  },
+  {
+    "stage": "turning",
+    "text": "Chuck jaws slipped at 1200 rpm, so clamping pressure was raised to 4.5 bar.",
+    "category": "machine"
+  },
+  {
+    "stage": "turning",
+    "text": "Spindle vibration at 1800 rpm, so speed was reduced to 1400 rpm to stop chatter.",
+    "category": "machine"
+  },
+  {
+    "stage": "turning",
+    "text": "Turret indexing failed twice, tool 3 recalibrated with a 0.01 mm offset correction.",
+    "category": "machine"
+  },
+  {
+    "stage": "turning",
+    "text": "Bar stock \u00d852 mm showed a hard spot at 10 mm depth, so feed was reduced to 0.12 mm/rev.",
+    "category": "material"
+  },
+  {
+    "stage": "turning",
+    "text": "Bar bent 0.5 mm over its 300 mm length, straightened before turning.",
+    "category": "material"
+  },
+  {
+    "stage": "turning",
+    "text": "Blank \u00d845 mm arrived 0.8 mm oversize, so an extra roughing pass was added.",
+    "category": "material"
+  },
+  {
+    "stage": "turning",
+    "text": "Cast blank porosity found at 3 mm depth, 2 pcs scrapped and remaining batch checked.",
+    "category": "material"
+  },
+  {
+    "stage": "milling",
+    "text": "Slot 12 mm wide milled to 24 mm depth on bracket, within tolerance.",
+    "category": "routine"
+  },
+  {
+    "stage": "milling",
+    "text": "Pocket roughed with 10 mm end mill at 2400 rpm, leaving 0.2 mm finish allowance.",
+    "category": "routine"
+  },
+  {
+    "stage": "milling",
+    "text": "Top face milled on 6061 plate, surface roughness measured at Ra 1.6.",
+    "category": "routine"
+  },
+  {
+    "stage": "milling",
+    "text": "Flange contour finished with 0.05 mm stock removed in the final pass.",
+    "category": "routine"
+  },
+  {
+    "stage": "milling",
+    "text": "Four 8 mm through holes milled on a 60 mm bolt circle diameter.",
+    "category": "routine"
+  },
+  {
+    "stage": "milling",
+    "text": "Side walls of block milled to 40.00 mm width and checked with micrometer.",
+    "category": "routine"
+  },
+  {
+    "stage": "milling",
+    "text": "Shoulder milled with 16 mm face mill at 1800 rpm and feed of 600 mm/min.",
+    "category": "routine"
+  },
+  {
+    "stage": "milling",
+    "text": "Keyway milled 5 mm wide and 3 mm deep in shaft hub.",
+    "category": "routine"
+  },
+  {
+    "stage": "milling",
+    "text": "1 x 45 degree chamfer milled on all top edges of housing.",
+    "category": "routine"
+  },
+  {
+    "stage": "milling",
+    "text": "Parallel faces milled to 25.4 mm thickness with parallelism within 0.02 mm.",
+    "category": "routine"
+  },
+  {
+    "stage": "milling",
+    "text": "R5 radius milled in inside corners of cavity using 10 mm ball nose cutter.",
+    "category": "routine"
+  },
+  {
+    "stage": "milling",
+    "text": "Part indexed 90 degrees on rotary table for four-side milling, 2 setups completed.",
+    "category": "routine"
+  },
+  {
+    "stage": "milling",
+    "text": "Slot depth of 8.00 mm verified with depth gauge, no re-machining needed.",
+    "category": "routine"
+  },
+  {
+    "stage": "milling",
+    "text": "2 pcs rejected: slot width 12.08 mm against 12.00 mm tolerance, reworked and accepted.",
+    "category": "defect"
+  },
+  {
+    "stage": "milling",
+    "text": "Pocket measured 30.12 mm instead of 30.00 mm, recut to size and passed inspection.",
+    "category": "defect"
+  },
+  {
+    "stage": "milling",
+    "text": "Scratch 0.3 mm deep found on flange face, polished out to Ra 0.8.",
+    "category": "defect"
+  },
+  {
+    "stage": "milling",
+    "text": "Wall thickness measured 3.2 mm instead of 3.5 mm on housing, marked for QC review.",
+    "category": "defect"
+  },
+  {
+    "stage": "milling",
+    "text": "Spindle vibration rose to 4.5 mm/s during roughing, so speed was reduced from 2400 to 1800 rpm.",
+    "category": "machine"
+  },
+  {
+    "stage": "milling",
+    "text": "6 mm end mill broke after 45 minutes, replaced and tool offset reset.",
+    "category": "machine"
+  },
+  {
+    "stage": "milling",
+    "text": "Coolant nozzle clogged, so machining stopped for 12 minutes to clear it before the finishing pass.",
+    "category": "machine"
+  },
+  {
+    "stage": "milling",
+    "text": "Z-axis backlash of 0.02 mm compensated after machine warm-up check.",
+    "category": "machine"
+  },
+  {
+    "stage": "milling",
+    "text": "Casting porosity 1.5 mm deep found under face, milled 2 mm deeper and recut.",
+    "category": "material"
+  },
+  {
+    "stage": "milling",
+    "text": "Billet hardness measured 42 HRC against 35 HRC spec, so feed was reduced to 150 mm/min.",
+    "category": "material"
+  },
+  {
+    "stage": "milling",
+    "text": "Aluminum bar bowed 0.8 mm over 300 mm length, flattened before milling.",
+    "category": "material"
+  },
+  {
+    "stage": "milling",
+    "text": "Soft 6082 chips welded to the cutting edge, causing 2 pcs to be scrapped.",
+    "category": "material"
+  },
+  {
+    "stage": "polishing",
+    "text": "Shaft polished to Ra 0.8 after 3 passes with 1200 grit paper.",
+    "category": "routine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Flange faces polished to Ra 0.4 in 6 minutes per part.",
+    "category": "routine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Buffing wheel run at 1800 rpm, 40 pcs finished in one batch.",
+    "category": "routine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Bore surface polished with 400 grit flap wheel to Ra 1.6.",
+    "category": "routine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Chamfers on 20 pcs polished by hand with 320 grit strip.",
+    "category": "routine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Stainless housing brought to mirror finish with 0.02 mm stock removed.",
+    "category": "routine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Polishing compound reapplied every 15 parts as per procedure.",
+    "category": "routine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Gear tooth flanks polished and surface roughness measured at Ra 0.6.",
+    "category": "routine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Batch of 30 bushings polished in 45 minutes without rework.",
+    "category": "routine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Edge radius R0.5 blended on 12 pcs with a Scotch-Brite pad.",
+    "category": "routine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Aluminium plates polished to satin finish with 0.01 mm removed per side.",
+    "category": "routine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Sealing groove polished to Ra 0.8 with 600 grit cord.",
+    "category": "routine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Polishing wheel trued with 2 mm cut off the face before the run.",
+    "category": "routine"
+  },
+  {
+    "stage": "polishing",
+    "text": "2 pcs rejected: scratch 0.05 mm deep on sealing face, repolished and accepted.",
+    "category": "defect"
+  },
+  {
+    "stage": "polishing",
+    "text": "Shaft diameter reduced to 24.92 mm after overpolishing, one part scrapped.",
+    "category": "defect"
+  },
+  {
+    "stage": "polishing",
+    "text": "Orange peel visible on 3 pcs, reworked with 800 grit to Ra 0.4.",
+    "category": "defect"
+  },
+  {
+    "stage": "polishing",
+    "text": "Corner radius came out R1.2 instead of R0.8 on 5 pcs, reset for rework.",
+    "category": "defect"
+  },
+  {
+    "stage": "polishing",
+    "text": "Polishing spindle vibrated at 1500 rpm, bearing replaced after a 20 minute stop.",
+    "category": "machine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Buffing wheel glazed after 25 parts, dressed with a 2 mm cut before continuing.",
+    "category": "machine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Coolant nozzle clogged, polishing paused for 10 minutes until cleared.",
+    "category": "machine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Belt tracking drifted 3 mm off center, adjusted and recalibrated.",
+    "category": "machine"
+  },
+  {
+    "stage": "polishing",
+    "text": "Casting porosity with 0.5 mm pits showed up on 4 pcs after polishing, sent to scrap.",
+    "category": "material"
+  },
+  {
+    "stage": "polishing",
+    "text": "Hardness of 58 HRC made abrasive wear about 40% faster than expected.",
+    "category": "material"
+  },
+  {
+    "stage": "polishing",
+    "text": "Stock arrived with a 0.3 mm rust film, so an extra 0.1 mm was removed before polishing.",
+    "category": "material"
+  },
+  {
+    "stage": "polishing",
+    "text": "Bar stock oversize by 0.08 mm required additional polishing time on every part.",
+    "category": "material"
+  },
+  {
+    "stage": "washing",
+    "text": "Parts washed in ultrasonic bath at 45 \u00b0C for 10 minutes.",
+    "category": "routine"
+  },
+  {
+    "stage": "washing",
+    "text": "Coolant residue removed from 24 pcs with alkaline wash and rinsed in deionized water.",
+    "category": "routine"
+  },
+  {
+    "stage": "washing",
+    "text": "Batch of 40 pcs dried with compressed air at 0.4 MPa.",
+    "category": "routine"
+  },
+  {
+    "stage": "washing",
+    "text": "Chips flushed from blind holes with 6 bar jet rinse.",
+    "category": "routine"
+  },
+  {
+    "stage": "washing",
+    "text": "Two-stage rinse completed, final rinse conductivity below 20 uS/cm.",
+    "category": "routine"
+  },
+  {
+    "stage": "washing",
+    "text": "Oil film removed from 18 housings in 5 % detergent bath for 8 minutes.",
+    "category": "routine"
+  },
+  {
+    "stage": "washing",
+    "text": "Washing basket loaded with 12 parts per cycle, cycle time 15 minutes.",
+    "category": "routine"
+  },
+  {
+    "stage": "washing",
+    "text": "Parts dried in oven at 80 \u00b0C for 20 minutes and checked for water spots.",
+    "category": "routine"
+  },
+  {
+    "stage": "washing",
+    "text": "Threaded holes M12 cleaned with brush and blown out with air.",
+    "category": "routine"
+  },
+  {
+    "stage": "washing",
+    "text": "Rust prevention oil applied to 30 pcs after washing.",
+    "category": "routine"
+  },
+  {
+    "stage": "washing",
+    "text": "Wash tank temperature held at 55 \u00b0C throughout the 60-minute batch.",
+    "category": "routine"
+  },
+  {
+    "stage": "washing",
+    "text": "Deburring swarf removed from 4 mm wide slots using pressure spray.",
+    "category": "routine"
+  },
+  {
+    "stage": "washing",
+    "text": "Parts rinsed for 3 minutes and transferred to packing within 30 minutes.",
+    "category": "routine"
+  },
+  {
+    "stage": "washing",
+    "text": "3 pcs rejected: residual chips in 2 mm bore, recleaned and accepted.",
+    "category": "defect"
+  },
+  {
+    "stage": "washing",
+    "text": "Water spots found on 5 pcs of aluminum flange, re-dried and passed inspection.",
+    "category": "defect"
+  },
+  {
+    "stage": "washing",
+    "text": "Shaft diameter 25 mm scratched by basket contact, 2 pcs scrapped.",
+    "category": "defect"
+  },
+  {
+    "stage": "washing",
+    "text": "Burn marks on 4 pcs from excessive oven temperature, reworked by polishing 0.1 mm off the surface.",
+    "category": "defect"
+  },
+  {
+    "stage": "washing",
+    "text": "Ultrasonic generator fault at 40 kHz stopped washing for 25 minutes, restarted after reset.",
+    "category": "machine"
+  },
+  {
+    "stage": "washing",
+    "text": "Dryer blower motor overheated at 90 \u00b0C, cooled down and resumed after 15 minutes.",
+    "category": "machine"
+  },
+  {
+    "stage": "washing",
+    "text": "Wash tank filter clogged, pressure dropped from 6 bar to 3 bar, so the filter was cleaned.",
+    "category": "machine"
+  },
+  {
+    "stage": "washing",
+    "text": "Conveyor basket jammed at station 3, freed and resumed after a 10 minute stop.",
+    "category": "machine"
+  },
+  {
+    "stage": "washing",
+    "text": "Casting porosity on 6 pcs trapped coolant, requiring an extra 10 minute rinse.",
+    "category": "material"
+  },
+  {
+    "stage": "washing",
+    "text": "Aluminum parts arrived with heavy machining oil, so the pre-wash cycle was extended to 25 minutes.",
+    "category": "material"
+  },
+  {
+    "stage": "washing",
+    "text": "Brass fittings showed green oxidation spots, cleaned with 2 % citric acid solution.",
+    "category": "material"
+  },
+  {
+    "stage": "washing",
+    "text": "Steel blanks delivered with rust film on 15 pcs, removed by wire brushing and washing.",
+    "category": "material"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Bore diameter 25.00 mm checked with bore gauge, within H7 tolerance.",
+    "category": "routine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "First article inspected: all 14 dimensions within drawing tolerance.",
+    "category": "routine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Thread M12x1.75 verified with go/no-go gauge, passed.",
+    "category": "routine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Surface roughness Ra 1.6 \u00b5m measured on 5 pcs, all accepted.",
+    "category": "routine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Overall length 85.02 mm measured with micrometer, within \u00b10.05 mm.",
+    "category": "routine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Batch of 40 pcs sampled per AQL 1.0, zero rejects.",
+    "category": "routine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Flatness of mounting face 0.02 mm verified on surface plate.",
+    "category": "routine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Hole positions checked on CMM, maximum deviation 0.03 mm.",
+    "category": "routine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Chamfers 0.5 x 45\u00b0 inspected with template, all conforming.",
+    "category": "routine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Parts marked with batch number and passed to packing.",
+    "category": "routine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Concentricity of OD to ID 0.01 mm confirmed on dial indicator.",
+    "category": "routine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Height gauge measurement of step 12.00 mm within 0.02 mm.",
+    "category": "routine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Visual inspection of 20 pcs completed, no scratches found.",
+    "category": "routine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "3 pcs rejected: bore 16.08 mm oversize, reworked and accepted.",
+    "category": "defect"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Slot width 8.15 mm exceeds 8.00 +0.05 mm tolerance on 2 pcs, scrapped.",
+    "category": "defect"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Thread M8 on 4 pcs has flank damage, rejected for rework.",
+    "category": "defect"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Burr 0.2 mm found on edge of 5 pcs, rechecked after deburring.",
+    "category": "defect"
+  },
+  {
+    "stage": "quality_control",
+    "text": "CMM probe calibration drifted by 0.004 mm, recalibrated before measuring further parts.",
+    "category": "machine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Bore gauge dial stuck at 0.01 mm, replaced and re-verified.",
+    "category": "machine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Surface plate height gauge stylus worn, measurements delayed by 30 minutes.",
+    "category": "machine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Optical comparator lamp failed, switched to backup unit after 15 minutes.",
+    "category": "machine"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Incoming bar hardness 28 HRC instead of 32 HRC, 6 pcs held for review.",
+    "category": "material"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Casting porosity 2 mm found on 3 pcs, rejected with supplier notice.",
+    "category": "material"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Aluminium bar diameter 30.12 mm exceeds stock tolerance, 4 pcs flagged.",
+    "category": "material"
+  },
+  {
+    "stage": "quality_control",
+    "text": "Certificate missing for steel lot 7741, parts quarantined until verified.",
+    "category": "material"
+  },
+  {
+    "stage": "packing",
+    "text": "24 pcs packed in foam trays, 6 trays per carton, labels facing up.",
+    "category": "routine"
+  },
+  {
+    "stage": "packing",
+    "text": "Carton of 40 pcs sealed with tape and weighed at 12.4 kg.",
+    "category": "routine"
+  },
+  {
+    "stage": "packing",
+    "text": "Parts wrapped in VCI paper and placed in 300x200 mm boxes.",
+    "category": "routine"
+  },
+  {
+    "stage": "packing",
+    "text": "Batch of 120 pcs counted and packed into 5 cartons of 24 pcs each.",
+    "category": "routine"
+  },
+  {
+    "stage": "packing",
+    "text": "Anti-rust oil applied to 60 pcs before boxing.",
+    "category": "routine"
+  },
+  {
+    "stage": "packing",
+    "text": "Pallet of 16 cartons stretch-wrapped and labeled with batch number.",
+    "category": "routine"
+  },
+  {
+    "stage": "packing",
+    "text": "Packing list matched with 75 pcs ordered, no discrepancies.",
+    "category": "routine"
+  },
+  {
+    "stage": "packing",
+    "text": "Each bag sealed with heat sealer at 180 \u00b0C and checked for leaks.",
+    "category": "routine"
+  },
+  {
+    "stage": "packing",
+    "text": "Dividers inserted between layers in 2 tiers per crate.",
+    "category": "routine"
+  },
+  {
+    "stage": "packing",
+    "text": "Shipping labels printed and attached to 8 crates.",
+    "category": "routine"
+  },
+  {
+    "stage": "packing",
+    "text": "Parts dried with air gun for 30 seconds before packing.",
+    "category": "routine"
+  },
+  {
+    "stage": "packing",
+    "text": "Protective caps fitted on 50 threaded bushings before boxing.",
+    "category": "routine"
+  },
+  {
+    "stage": "packing",
+    "text": "Crate lid screwed down with 12 screws torqued to standard.",
+    "category": "routine"
+  },
+  {
+    "stage": "packing",
+    "text": "3 pcs rejected at packing: surface scratched, returned to polishing.",
+    "category": "defect"
+  },
+  {
+    "stage": "packing",
+    "text": "Carton label showed wrong part number, 2 cartons relabeled before shipping.",
+    "category": "defect"
+  },
+  {
+    "stage": "packing",
+    "text": "5 pcs packed with burrs on bore edge, sent back for deburring.",
+    "category": "defect"
+  },
+  {
+    "stage": "packing",
+    "text": "1 pc with thread M10 out of gauge found during boxing, removed from batch.",
+    "category": "defect"
+  },
+  {
+    "stage": "packing",
+    "text": "Heat sealer jaw overheated at 210 \u00b0C, stopped for 15 min cooling.",
+    "category": "machine"
+  },
+  {
+    "stage": "packing",
+    "text": "Label printer jammed twice, reprinted 6 labels manually.",
+    "category": "machine"
+  },
+  {
+    "stage": "packing",
+    "text": "Strapping machine tension sensor failed, pallet banded by hand.",
+    "category": "machine"
+  },
+  {
+    "stage": "packing",
+    "text": "Conveyor belt slipped at packing station, speed reduced to 0.4 m/s.",
+    "category": "machine"
+  },
+  {
+    "stage": "packing",
+    "text": "Foam inserts arrived 5 mm thinner than specified, double-layered to compensate.",
+    "category": "material"
+  },
+  {
+    "stage": "packing",
+    "text": "Cardboard cartons delivered with crushed corners on 4 boxes, replaced.",
+    "category": "material"
+  },
+  {
+    "stage": "packing",
+    "text": "VCI paper roll torn at 2 m, 1.5 m usable length spliced.",
+    "category": "material"
+  },
+  {
+    "stage": "packing",
+    "text": "Plastic bags 0.05 mm thin, split on 3 of 40 pcs, rebagged in heavier film.",
+    "category": "material"
+  }
+]
