@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 from typing import Literal
 
 import anthropic
@@ -54,6 +56,17 @@ api_key = settings.anthropic_api_key.get_secret_value()
 
 if __name__ == "__main__":
     client = anthropic.Anthropic(api_key=api_key)
-    notes = generate_notes(client, ProcessStage.WASHING, count=5)
-    for note in notes:
-        print(note.category, "|", note.text)
+
+    all_notes = []
+    for stage in ProcessStage:
+        notes = generate_notes(client, stage)
+        all_notes.extend(notes)
+        print(stage, len(notes))
+
+    data = [note.model_dump(mode="json") for note in all_notes]
+
+    Path("data").mkdir(exist_ok=True)
+    with open("data/step_notes.json", "w") as file:
+        json.dump(data, file, indent=2)
+
+    print("Total:", len(all_notes))
