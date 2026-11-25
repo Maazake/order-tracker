@@ -211,9 +211,13 @@ def consume_summary_quota(db: Session, user_id: int) -> None:
 
 
 def extract_order_draft(
-    email_text: str, client: anthropic.Anthropic, now: datetime | None = None
+    email_text: str,
+    client: anthropic.Anthropic,
+    model: str | None = None,
+    now: datetime | None = None,
 ) -> OrderDraft:
     today = (now or datetime.now(UTC)).date().isoformat()
+    model = model or settings.anthropic_model
 
     system = f"""You get info about order from mail.
     You will receive email data inside <email> tags.
@@ -228,7 +232,7 @@ def extract_order_draft(
 
     try:
         response = client.messages.parse(
-            model=settings.anthropic_model,
+            model=model,
             max_tokens=1000,
             system=system,
             output_config={"effort": "low"},
