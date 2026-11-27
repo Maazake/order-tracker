@@ -11,7 +11,7 @@ from app.services import extract_order_draft
 
 NOW = datetime(2026, 11, 25, tzinfo=UTC)
 RUNS = 3
-MODELS = ["claude-haiku-5-5", "claude-sonnet-5-5", "claude-opus-5-5"]
+MODELS = ["claude-haiku-5-5"]
 
 
 class SpyMessages:
