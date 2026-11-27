@@ -6,7 +6,11 @@ from fastapi import Depends, HTTPException, status
 from app.config import settings
 
 _client = None
-MODEL_PRICES = {"claude-haiku-5-5": {"in": 0.10, "out": 0.5}}
+MODEL_PRICES = {
+    "claude-haiku-5-5": {"in": 0.10, "out": 0.5},
+    "claude-sonnet-5-5": {"in": 2, "out": 10},
+    "claude-opus-5-5": {"in": 4, "out": 20},
+}
 LLM_TIMEOUT_SECONDS = 5
 LLM_MAX_RETRIES = 1
 
