@@ -153,6 +153,31 @@ The test suite covers the happy paths and error paths: 401 (missing, expired, fo
 - **pre-commit** runs ruff (lint and format) before every commit.
 - **GitHub Actions** starts a PostgreSQL service container and runs ruff and the full test suite with coverage (minimum 95%) on every pull request and on every push to `master`.
 
+## LLM evaluation
+
+`POST /orders/from-text` is checked by an eval, not only by unit tests. Unit tests use a fake client and check the code around the model; the eval sends real emails to the real model and checks what it extracts.
+
+- **18 cases** in `evals/order_draft_cases.json`, each an email with the expected draft: complete orders, missing name, quantity or date, numbers written as words, relative and US-format dates, a Polish email, an older order mentioned in the same email, non-orders (a quote request, a general question, a cancellation) and prompt injection in English and Polish.
+- **Each case runs 3 times**, because the model does not answer the same way every time.
+- **A fixed date** is passed to the extractor, so "next Friday" has one correct answer no matter when the eval runs.
+- **Cost is measured from real tokens**: the script wraps the client in a spy that adds up `usage` from every response.
+
+Results (54 runs per model, `effort: low`):
+
+| Model | Correct | Cost per 1000 drafts | Average time |
+|---|---|---|---|
+| **Claude Haiku 5.5** | 54/54 | **$0.08** | **1.09 s** |
+| Claude Sonnet 5.5 | 54/54 | $1.67 | 2.12 s |
+| Claude Opus 5.5 | 54/54 | $3.34 | 1.75 s |
+
+All three models got every case right, so the app uses Haiku: about 20 times cheaper than Sonnet and the fastest of the three. Because every model scores 100%, this eval cannot tell their quality apart; harder cases would be needed before choosing a model for a harder task.
+
+Run it (calls the real API for all three models, about $0.30 in total):
+
+```bash
+uv run python -m evals.run_order_draft_eval
+```
+
 ## Deployment
 
 - **Render** builds the image from the `Dockerfile` and runs it. Configuration (`DATABASE_URL`, `SECRET_KEY`, admin credentials) is set as environment variables in the Render dashboard, never in the repository or the image. Production uses its own Anthropic API key, separate from the development one, with a monthly spending limit set in the Anthropic console.
@@ -177,6 +202,8 @@ app/
   seed.py       # demo data, admin and demo accounts
 alembic/        # database migrations
 tests/          # API tests; fakes.py holds the fake LLM client
+evals/          # LLM eval: test emails and the script that runs them
+scripts/        # one-off scripts, e.g. generating step notes into data/
 Dockerfile      # API image: dependencies layer first, then code
 docker-compose.yml  # PostgreSQL + API
 ```
